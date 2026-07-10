@@ -1,4 +1,4 @@
-package com.github.backslashes.flighteffect;
+package net.backslashes.flighteffect;
 
 import java.util.List;
 
