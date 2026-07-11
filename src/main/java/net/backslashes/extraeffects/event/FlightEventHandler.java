@@ -1,7 +1,7 @@
-package net.backslashes.flighteffect.event;
+package net.backslashes.extraeffects.event;
 
-import net.backslashes.flighteffect.FlightEffect;
-import net.backslashes.flighteffect.effect.ModEffects;
+import net.backslashes.extraeffects.ExtraEffects;
+import net.backslashes.extraeffects.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -10,7 +10,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-@EventBusSubscriber(modid = FlightEffect.MODID)
+@EventBusSubscriber(modid = ExtraEffects.MODID)
 public class FlightEventHandler {
 
     @SubscribeEvent
