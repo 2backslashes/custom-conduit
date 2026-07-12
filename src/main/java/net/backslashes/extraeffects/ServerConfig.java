@@ -11,5 +11,13 @@ public class ServerConfig {
             .comment("The flight speed per level of Flight. Vanilla creative flight speed is 0.05.")
             .defineInRange("FlightSpeedPerLevel", 0.025, 0.0, 100.0);
 
+    public static final ModConfigSpec.DoubleValue REACH_BLOCKS_PER_LEVEL = BUILDER
+            .comment("The distance in blocks added per effect level of Miner's Reach.")
+            .defineInRange("ReachBlocksPerLevel", 4.0, 0.0, 1000.0);
+
+    public static final ModConfigSpec.DoubleValue REACH_ENTITIES_PER_LEVEL = BUILDER
+            .comment("The distance in blocks added per effect level of Fighter's Reach.")
+            .defineInRange("ReachEntitiesPerLevel", 2.0, 0.0, 1000.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

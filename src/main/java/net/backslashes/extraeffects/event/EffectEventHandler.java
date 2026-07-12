@@ -3,6 +3,7 @@ package net.backslashes.extraeffects.event;
 import net.backslashes.extraeffects.ServerConfig;
 import net.backslashes.extraeffects.ExtraEffects;
 import net.backslashes.extraeffects.effect.ModEffects;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -30,7 +31,7 @@ public class EffectEventHandler {
                 Abilities abilities = player.getAbilities();
                 abilities.mayfly = true; // it may be deprecated, but it's the only thing that works :)
                 float naturalFlightSpeed = player.isCreative() ? CREATIVE_FLY_SPEED : 0.0f;
-                float potionFlightSpeed = ServerConfig.FLIGHT_SPEED_PER_LEVEL.get().floatValue() * effect.getAmplifier();
+                float potionFlightSpeed = ServerConfig.FLIGHT_SPEED_PER_LEVEL.get().floatValue() * (1 + effect.getAmplifier());
                 abilities.setFlyingSpeed(Float.max(naturalFlightSpeed, potionFlightSpeed));
                 player.onUpdateAbilities();
             }

@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "package": "net.backslashes.extraeffects.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntityMixin",
+    "LivingEntityMixin"
+  ]
+}
