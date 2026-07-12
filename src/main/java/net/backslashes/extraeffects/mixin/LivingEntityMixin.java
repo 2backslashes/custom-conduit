@@ -20,7 +20,7 @@ public abstract class LivingEntityMixin {
 
     @Inject(method="isInvulnerableTo", at=@At("HEAD"), cancellable = true)
     public void isInvulnerableTo(DamageSource source, CallbackInfoReturnable<Boolean> cir){
-        if (hasEffect(ModEffects.UNIMPEDED)){
+        if (hasEffect(ModEffects.UNIMPEDED.effect)){
             if(source.is(DamageTypeTags.BURN_FROM_STEPPING)){
                 cir.setReturnValue(true);
                 cir.cancel();

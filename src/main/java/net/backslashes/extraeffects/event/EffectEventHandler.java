@@ -3,12 +3,10 @@ package net.backslashes.extraeffects.event;
 import net.backslashes.extraeffects.ServerConfig;
 import net.backslashes.extraeffects.ExtraEffects;
 import net.backslashes.extraeffects.effect.ModEffects;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Abilities;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
@@ -25,7 +23,7 @@ public class EffectEventHandler {
     @SubscribeEvent
     public static void onEffectAdded(MobEffectEvent.Added event){
         MobEffectInstance effect = event.getEffectInstance();
-        if(effect.getEffect().is(ModEffects.FLIGHT.getId())){
+        if(effect.getEffect().is(ModEffects.FLIGHT.effect.getId())){
             Entity entity = event.getEntity();
             if(entity instanceof ServerPlayer player) {
                 Abilities abilities = player.getAbilities();
@@ -55,7 +53,7 @@ public class EffectEventHandler {
     }
 
     public static void effectEnded(MobEffectInstance instance, Entity entity){
-        if(instance.getEffect().is(ModEffects.FLIGHT.getId())){
+        if(instance.getEffect().is(ModEffects.FLIGHT.effect.getId())){
             if(entity instanceof ServerPlayer player) {
                 player.getAbilities().setFlyingSpeed(CREATIVE_FLY_SPEED);
                 if (!player.isCreative()) {

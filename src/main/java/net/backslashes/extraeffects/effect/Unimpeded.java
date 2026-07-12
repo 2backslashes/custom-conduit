@@ -23,7 +23,7 @@ public class Unimpeded extends MobEffect {
 
         AttributeModifier speedModifier = new AttributeModifier(
                 SPEED_MODIFIER_RESOURCE,
-                1.0 * amplifier,
+                1.0 * (1 + amplifier),
                 AttributeModifier.Operation.ADD_VALUE
         );
 
