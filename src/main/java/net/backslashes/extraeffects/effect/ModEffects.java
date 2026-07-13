@@ -90,8 +90,8 @@ public class ModEffects {
             "Miner's Reach",
             BlockReach::new,
             4000,
-            3000,
             6000,
+            3000,
             "Allows mining & placing blocks farther away. Higher levels increase interaction distance."
     ));
     public static final EffectItems ENTITY_REACH = registerEffectItems(new EffectItems(
@@ -128,7 +128,7 @@ public class ModEffects {
             600,
             1200,
             400,
-            "On death, violently explode."
+            "On death, violently explode. The larger the mob, the bigger the boom."
     ));
     public static final EffectItems EXPIRATION = registerEffectItems(new EffectItems(
             Expiration.EFFECT_ID,
@@ -137,7 +137,17 @@ public class ModEffects {
             24000,
             0,
             12000,
-            "When the effect expires, you do too."
+            "When the effect expires, so do you. Consider drinking milk if you can."
+    ));
+
+    public static final EffectItems PEACEFUL_MINER = registerEffectItems(new EffectItems(
+            PeacefulMiner.EFFECT_ID,
+            "the Peaceful Miner",
+            PeacefulMiner::new,
+            4000,
+            6000,
+            2000,
+            "Increases mining speed, but decreases attack damage."
     ));
 
     public static void register(IEventBus eventBus) {

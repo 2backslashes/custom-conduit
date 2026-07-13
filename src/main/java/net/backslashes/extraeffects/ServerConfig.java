@@ -31,5 +31,13 @@ public class ServerConfig {
             .comment("Explosion radius added per level of Volatility.")
             .defineInRange("ExplosivePowerPerLevel", 2.0, 0.0, 100.0);
 
+    public static final ModConfigSpec.DoubleValue PEACEFUL_MINER_SPEED_PER_LEVEL = BUILDER
+            .comment("Mining speed added per level of Peaceful Miner.")
+            .defineInRange("PeacefulMinerSpeedPerLevel", 0.2, 0.0, 100.0);
+
+    public static final ModConfigSpec.DoubleValue PEACEFUL_MINER_DAMAGE_PER_LEVEL = BUILDER
+            .comment("Damage factor subtracted per level of Peaceful Miner.")
+            .defineInRange("PeacefulMinerDamagePerLevel", 0.4, 0.0, 100.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }
