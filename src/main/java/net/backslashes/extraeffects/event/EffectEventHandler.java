@@ -4,6 +4,9 @@ import net.backslashes.extraeffects.ServerConfig;
 import net.backslashes.extraeffects.ExtraEffects;
 import net.backslashes.extraeffects.effect.ModEffects;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -12,9 +15,7 @@ import net.minecraft.world.entity.player.Abilities;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.living.MobEffectEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
@@ -44,10 +45,24 @@ public class EffectEventHandler {
 
     @SubscribeEvent
     public static void onEffectExpired(MobEffectEvent.Expired event){
-        if(event.getEffectInstance() == null){
+        MobEffectInstance inst = event.getEffectInstance();
+        if(inst == null){
             return;
         }
-        effectEnded(event.getEffectInstance(), event.getEntity());
+        LivingEntity ent = event.getEntity();
+        effectEnded(inst, ent);
+
+        if(inst.is(ModEffects.EXPIRATION.effect)){
+            boolean spare = false;
+            if(ent instanceof ServerPlayer player){
+                if(player.isCreative() || player.isSpectator()){
+                    spare = true;
+                }
+            }
+            if(!spare){
+                ent.kill();
+            }x
+        }
     }
 
     @SubscribeEvent
@@ -71,7 +86,7 @@ public class EffectEventHandler {
     }
 
     @SubscribeEvent
-    public static void on(LivingDeathEvent event){
+    public static void onEntityDeath(LivingDeathEvent event){
         LivingEntity ent = event.getEntity();
         MobEffectInstance effect = ent.getEffect(ModEffects.EXPLOSIVE.effect);
         if(effect != null){

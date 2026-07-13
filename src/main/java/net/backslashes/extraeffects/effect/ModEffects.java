@@ -130,6 +130,15 @@ public class ModEffects {
             400,
             "On death, violently explode."
     ));
+    public static final EffectItems EXPIRATION = registerEffectItems(new EffectItems(
+            Expiration.EFFECT_ID,
+            "Expiration",
+            Expiration::new,
+            24000,
+            0,
+            12000,
+            "When the effect expires, you do too."
+    ));
 
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
