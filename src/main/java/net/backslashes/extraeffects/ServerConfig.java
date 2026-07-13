@@ -19,5 +19,13 @@ public class ServerConfig {
             .comment("The distance in blocks added per effect level of Fighter's Reach.")
             .defineInRange("ReachEntitiesPerLevel", 2.0, 0.0, 1000.0);
 
+    public static final ModConfigSpec.DoubleValue RABBIT_SPEED_PER_LEVEL = BUILDER
+            .comment("The speed added per level of Rabbit Form.")
+            .defineInRange("RabbitFormSpeedPerLevel", 0.3, 0.0, 10.0);
+
+    public static final ModConfigSpec.DoubleValue RABBIT_JUMP_PER_LEVEL = BUILDER
+            .comment("The jump boost added per level of Rabbit Form.")
+            .defineInRange("RabbitFormJumpPerLevel", 0.3, 0.0, 10.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }

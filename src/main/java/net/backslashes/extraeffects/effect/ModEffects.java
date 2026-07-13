@@ -8,7 +8,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.neoforged.bus.api.IEventBus;
@@ -78,7 +77,7 @@ public class ModEffects {
             = DeferredRegister.create(Registries.POTION, ExtraEffects.MODID);
 
     public static final EffectItems FLIGHT = registerEffectItems(new EffectItems(
-            "flight",
+            Flight.EFFECT_ID,
             "Flight",
             Flight::new,
             400,
@@ -87,7 +86,7 @@ public class ModEffects {
             "Grants creative flight. Higher levels provide faster flying speed."
     ));
     public static final EffectItems BLOCK_REACH = registerEffectItems(new EffectItems(
-            "block_reach",
+            BlockReach.EFFECT_ID,
             "Miner's Reach",
             BlockReach::new,
             4000,
@@ -96,7 +95,7 @@ public class ModEffects {
             "Allows mining & placing blocks farther away. Higher levels increase interaction distance."
     ));
     public static final EffectItems ENTITY_REACH = registerEffectItems(new EffectItems(
-            "entity_reach",
+            EntityReach.EFFECT_ID,
             "Warrior's Reach",
             EntityReach::new,
             2400,
@@ -105,13 +104,22 @@ public class ModEffects {
             "Allows hitting or otherwise interaction with entities from farther away. Higher levels increase interaction distance."
     ));
     public static final EffectItems UNIMPEDED = registerEffectItems(new EffectItems(
-            "unimpeded",
+            Unimpeded.EFFECT_ID,
             "Unimpeded Travel",
             Unimpeded::new,
             3600,
             5000,
             0,
             "Removes the movement/jump/damage penalties from blocks like Sweet Berry Bushes, Magma, Cobwebs, etc."
+    ));
+    public static final EffectItems RABBIT_FORM = registerEffectItems(new EffectItems(
+            RabbitForm.EFFECT_ID,
+            "Rabbit Form",
+            RabbitForm::new,
+            2400,
+            3600,
+            1200,
+            "Greatly increases agility and removes fall damage, but decreases health, damage, and armor in turn."
     ));
 
     public static void register(IEventBus eventBus) {

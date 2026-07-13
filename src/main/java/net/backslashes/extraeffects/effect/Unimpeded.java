@@ -11,35 +11,19 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import org.jetbrains.annotations.NotNull;
 
-public class Unimpeded extends MobEffect {
-    private static final ResourceLocation SPEED_MODIFIER_RESOURCE = ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "effect.unimpeded_speed");
+import java.util.List;
+
+public class Unimpeded extends ModifierEffect {
+    public static final String EFFECT_ID = "unimpeded";
     protected Unimpeded() {
-        super(MobEffectCategory.BENEFICIAL, 0xe3A65B);
-    }
-
-    @Override
-    public void addAttributeModifiers(@NotNull AttributeMap attributeMap, int amplifier) {
-        super.addAttributeModifiers(attributeMap, amplifier);
-
-        AttributeModifier speedModifier = new AttributeModifier(
-                SPEED_MODIFIER_RESOURCE,
-                1.0 * (1 + amplifier),
-                AttributeModifier.Operation.ADD_VALUE
-        );
-
-        AttributeInstance speedAttrib = attributeMap.getInstance(Attributes.MOVEMENT_EFFICIENCY);
-        if(speedAttrib != null){
-            speedAttrib.addOrUpdateTransientModifier(speedModifier);
-        }
-    }
-
-    @Override
-    public void removeAttributeModifiers(@NotNull AttributeMap attributeMap) {
-        super.removeAttributeModifiers(attributeMap);
-
-        AttributeInstance speedAttrib = attributeMap.getInstance(Attributes.MOVEMENT_EFFICIENCY);
-        if(speedAttrib != null) {
-            speedAttrib.removeModifier(SPEED_MODIFIER_RESOURCE);
-        }
+        super(MobEffectCategory.BENEFICIAL, 0xE3A65B, List.of(
+                new ModifierEntry(
+                        Attributes.MOVEMENT_EFFICIENCY,
+                        "move_efficiency",
+                        EFFECT_ID,
+                        (Integer level) -> 1.0f,
+                        AttributeModifier.Operation.ADD_VALUE
+                )
+        ));
     }
 }

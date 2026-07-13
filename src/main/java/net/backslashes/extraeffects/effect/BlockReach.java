@@ -8,35 +8,19 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.*;
 import org.jetbrains.annotations.NotNull;
 
-public class BlockReach extends MobEffect {
-    private static final ResourceLocation MODIFIER_RESOURCE = ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "effect.block_reach");
+import java.util.List;
+
+public class BlockReach extends ModifierEffect {
+    public static final String EFFECT_ID = "block_reach";
     protected BlockReach() {
-        super(MobEffectCategory.BENEFICIAL, 0x766DF7);
-    }
-
-    @Override
-    public void addAttributeModifiers(@NotNull AttributeMap attributeMap, int amplifier) {
-        super.addAttributeModifiers(attributeMap, amplifier);
-
-        AttributeModifier modifier = new AttributeModifier(
-                MODIFIER_RESOURCE,
-                ServerConfig.REACH_BLOCKS_PER_LEVEL.getAsDouble() * (1 + amplifier),
-                AttributeModifier.Operation.ADD_VALUE
-        );
-
-        AttributeInstance attrib = attributeMap.getInstance(Attributes.BLOCK_INTERACTION_RANGE);
-        if(attrib != null){
-            attrib.addOrUpdateTransientModifier(modifier);
-        }
-    }
-
-    @Override
-    public void removeAttributeModifiers(@NotNull AttributeMap attributeMap) {
-        super.removeAttributeModifiers(attributeMap);
-
-        AttributeInstance attrib = attributeMap.getInstance(Attributes.BLOCK_INTERACTION_RANGE);
-        if(attrib != null) {
-            attrib.removeModifier(MODIFIER_RESOURCE);
-        }
+        super(MobEffectCategory.BENEFICIAL, 0x766DF7, List.of(
+                new ModifierEntry(
+                        Attributes.BLOCK_INTERACTION_RANGE,
+                        "reach",
+                        EFFECT_ID,
+                        (Integer level) -> (float) (ServerConfig.REACH_BLOCKS_PER_LEVEL.getAsDouble() * (1 + level)),
+                        AttributeModifier.Operation.ADD_VALUE
+                )
+        ));
     }
 }
