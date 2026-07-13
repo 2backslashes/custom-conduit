@@ -101,7 +101,7 @@ public class ModEffects {
             2400,
             3600,
             1800,
-            "Allows hitting or otherwise interaction with entities from farther away. Higher levels increase interaction distance."
+            "Allows hitting or interacting with entities from farther away. Higher levels increase interaction distance."
     ));
     public static final EffectItems UNIMPEDED = registerEffectItems(new EffectItems(
             Unimpeded.EFFECT_ID,
@@ -119,7 +119,7 @@ public class ModEffects {
             2400,
             3600,
             1200,
-            "Greatly increases agility and removes fall damage, but decreases health, damage, and armor in turn."
+            "Greatly increases agility and removes fall damage, but decreases health, attack damage, and armor in turn."
     ));
     public static final EffectItems EXPLOSIVE = registerEffectItems(new EffectItems(
             Explosive.EFFECT_ID,
