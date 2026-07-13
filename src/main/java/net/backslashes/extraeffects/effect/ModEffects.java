@@ -121,6 +121,15 @@ public class ModEffects {
             1200,
             "Greatly increases agility and removes fall damage, but decreases health, damage, and armor in turn."
     ));
+    public static final EffectItems EXPLOSIVE = registerEffectItems(new EffectItems(
+            Explosive.EFFECT_ID,
+            "Volatility",
+            Explosive::new,
+            600,
+            1200,
+            400,
+            "On death, violently explode."
+    ));
 
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);

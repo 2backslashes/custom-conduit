@@ -27,5 +27,9 @@ public class ServerConfig {
             .comment("The jump boost added per level of Rabbit Form.")
             .defineInRange("RabbitFormJumpPerLevel", 0.3, 0.0, 10.0);
 
+    public static final ModConfigSpec.DoubleValue EXPLOSIVE_POWER_PER_LEVEL = BUILDER
+            .comment("Explosion radius added per level of Volatility.")
+            .defineInRange("ExplosivePowerPerLevel", 2.0, 0.0, 100.0);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 }
