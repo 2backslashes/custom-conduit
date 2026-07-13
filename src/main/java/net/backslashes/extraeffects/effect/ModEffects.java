@@ -150,6 +150,16 @@ public class ModEffects {
             "Increases mining speed, but decreases attack damage."
     ));
 
+    public static final EffectItems SunSensitivity = registerEffectItems(new EffectItems(
+            net.backslashes.extraeffects.effect.SunSensitivity.EFFECT_ID,
+            "Sun Sensitivity",
+            SunSensitivity::new,
+            6000,
+            12000,
+            0,
+            "Catch fire in direct sunlight. Headwear won't protect you!"
+    ));
+
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
         POTIONS.register(eventBus);
