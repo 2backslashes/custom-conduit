@@ -14,7 +14,7 @@ import java.util.List;
 public class EntityReach extends ModifierEffect {
     public static final String EFFECT_ID = "entity_reach";
     protected EntityReach() {
-        super(MobEffectCategory.BENEFICIAL, 0xFDA667, List.of(
+        super(MobEffectCategory.BENEFICIAL, 0xAD4667, List.of(
                 new ModifierEntry(
                         Attributes.ENTITY_INTERACTION_RANGE,
                         "reach",
