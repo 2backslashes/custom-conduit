@@ -1,5 +1,6 @@
 package net.backslashes.extraeffects.recipe;
 
+import com.mojang.datafixers.util.Pair;
 import net.backslashes.extraeffects.ExtraEffects;
 import net.backslashes.extraeffects.effect.ModEffects;
 import net.minecraft.core.HolderLookup;
@@ -8,6 +9,9 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.bus.api.IEventBus;
@@ -17,11 +21,12 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 @EventBusSubscriber(modid = ExtraEffects.MODID)
 public class ModRecipes {
-    public static final String EFFECT_CONDUIT_RECIPE_ID = "growth_chamber";
+    public static final String EFFECT_CONDUIT_RECIPE_ID = "effect_conduit";
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, ExtraEffects.MODID);
     public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, ExtraEffects.MODID);
 
@@ -46,6 +51,15 @@ public class ModRecipes {
         @Override
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
+            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+                    16,
+                    42,
+                    32.0,
+                    96.0,
+                    Ingredient.of(Items.GOLD_BLOCK),
+                    Arrays.asList(ModEffects.FLIGHT.effect),
+                    Arrays.asList(0)
+                )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_flight_from_gold"));
         }
     }
 

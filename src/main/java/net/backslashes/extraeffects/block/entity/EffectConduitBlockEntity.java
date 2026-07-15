@@ -164,11 +164,12 @@ public class EffectConduitBlockEntity extends BlockEntity {
                 continue;
             }
 
-            List<Pair<Holder<MobEffect>, Integer>> outEffects = recipe.outEffects();
+            List<Holder<MobEffect>> outEffects = recipe.outEffects();
+            List<Integer> outEffectAmplifiers = recipe.outEffectAmplifiers();
             double range = recipe.computeEffectRange(validFrameBlocks.size());
-            for (Pair<Holder<MobEffect>, Integer> pair : outEffects) {
-                Holder<MobEffect> effect = pair.getFirst();
-                int amplifier = pair.getSecond();
+            for (int i=0; i<outEffects.size(); ++i) {
+                Holder<MobEffect> effect = outEffects.get(i);
+                int amplifier = outEffectAmplifiers.get(i);
                 activeEffects.add(new ActiveEffect(
                         effect,
                         amplifier,

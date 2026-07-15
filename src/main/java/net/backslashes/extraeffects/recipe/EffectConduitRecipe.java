@@ -2,6 +2,8 @@ package net.backslashes.extraeffects.recipe;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
@@ -28,7 +30,8 @@ public record EffectConduitRecipe(
         double minRange,
         double maxRange,
         Ingredient frameBlockIngredient,
-        List<Pair<Holder<MobEffect>, Integer>> outEffects
+        List<Holder<MobEffect>> outEffects,
+        List<Integer> outEffectAmplifiers
 ) implements Recipe<EffectConduitRecipeInput> {
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
@@ -44,7 +47,8 @@ public record EffectConduitRecipe(
     public List<BlockState> computeValidFrameBlocks(HashMap<Block, List<BlockState>> frameBlocksByType){
         List<BlockState> validBlocks = new ArrayList<>();
         for (Map.Entry<Block, List<BlockState>> entry : frameBlocksByType.entrySet()) {
-            if(frameBlockIngredient.test(new ItemStack(entry.getKey()))){
+            ItemStack itemStack = new ItemStack(entry.getKey().asItem(), 1);
+            if(frameBlockIngredient.test(itemStack)){
                 validBlocks.addAll(entry.getValue());
             }
         }
@@ -92,7 +96,8 @@ public record EffectConduitRecipe(
                 Codec.DOUBLE.fieldOf("minRange").forGetter(EffectConduitRecipe::minRange),
                 Codec.DOUBLE.fieldOf("maxRange").forGetter(EffectConduitRecipe::maxRange),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frame").forGetter(EffectConduitRecipe::frameBlockIngredient),
-                Codec.pair(MobEffect.CODEC, Codec.INT).listOf().fieldOf("effects").forGetter((recipe) -> recipe.outEffects)
+                MobEffect.CODEC.listOf().fieldOf("effects").forGetter((recipe) -> recipe.outEffects),
+                Codec.INT.listOf().fieldOf("effectAmplifiers").forGetter((recipe) -> recipe.outEffectAmplifiers)
         ).apply(inst, EffectConduitRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, EffectConduitRecipe> STREAM_CODEC = StreamCodec.of(EffectConduitRecipeSerializer::toNetwork, EffectConduitRecipeSerializer::fromNetwork);
@@ -113,14 +118,14 @@ public record EffectConduitRecipe(
             double minRange = buffer.readDouble();
             double maxRange = buffer.readDouble();
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
-            List<Pair<Holder<MobEffect>, Integer>> effects = new ArrayList<>();
+            List<Holder<MobEffect>> effects = new ArrayList<>();
+            List<Integer> effectAmplifiers = new ArrayList<>();
             int effectCount = buffer.readVarInt();
             for(int i=0; i<effectCount; ++i){
-                Holder<MobEffect> effect = MobEffect.STREAM_CODEC.decode(buffer);
-                int amplifier = buffer.readInt();
-                effects.add(new Pair<>(effect, amplifier));
+                effects.add(MobEffect.STREAM_CODEC.decode(buffer));
+                effectAmplifiers.add(buffer.readInt());
             }
-            return new EffectConduitRecipe(minFrameBlockCount, maxFrameBlockCount, minRange, maxRange, frameBlockIngredient, effects);
+            return new EffectConduitRecipe(minFrameBlockCount, maxFrameBlockCount, minRange, maxRange, frameBlockIngredient, effects, effectAmplifiers);
         }
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
@@ -130,9 +135,9 @@ public record EffectConduitRecipe(
             buffer.writeDouble(recipe.maxRange);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);
             buffer.writeVarInt(recipe.outEffects.size());
-            for(Pair<Holder<MobEffect>, Integer> pair : recipe.outEffects){
-                MobEffect.STREAM_CODEC.encode(buffer, pair.getFirst());
-                buffer.writeInt(pair.getSecond());
+            for(int i=0; i<recipe.outEffects.size(); ++i){
+                MobEffect.STREAM_CODEC.encode(buffer, recipe.outEffects.get(i));
+                buffer.writeInt(recipe.outEffectAmplifiers.get(i));
             }
         }
     }
