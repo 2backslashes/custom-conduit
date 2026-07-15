@@ -2,9 +2,12 @@ package net.backslashes.extraeffects.effect;
 
 import net.backslashes.extraeffects.ExtraEffects;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.Items;
@@ -21,6 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
 @EventBusSubscriber(modid = ExtraEffects.MODID)
@@ -225,6 +229,8 @@ public class ModEffects {
     @SubscribeEvent // on the mod event bus
     public static void onGatherData(GatherDataEvent event) {
         DataGenerator generator = event.getGenerator();
+        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
+
         generator.addProvider(event.includeClient(), new EffectLangProvider(generator.getPackOutput()));
     }
 }

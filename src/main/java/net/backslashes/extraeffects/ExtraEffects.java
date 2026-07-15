@@ -1,6 +1,7 @@
 package net.backslashes.extraeffects;
 import net.backslashes.extraeffects.block.ModBlocks;
 import net.backslashes.extraeffects.effect.ModEffects;
+import net.backslashes.extraeffects.recipe.ModRecipes;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -31,6 +32,7 @@ public class ExtraEffects {
 
         ModEffects.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModRecipes.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 

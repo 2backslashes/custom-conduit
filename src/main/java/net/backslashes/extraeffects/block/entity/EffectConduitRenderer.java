@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.block.entity.ConduitBlockEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
@@ -34,10 +33,7 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
     public static final Material VERTICAL_WIND_TEXTURE = new Material(
             TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/wind_vertical")
     );
-    public static final Material OPEN_EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
-    public static final Material CLOSED_EYE_TEXTURE = new Material(
-            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/closed_eye")
-    );
+    public static final Material EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
     private final ModelPart eye;
     private final ModelPart wind;
     private final ModelPart shell;
@@ -131,7 +127,7 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             this.eye
                     .render(
                             poseStack,
-                            (blockEntity.isHunting() ? OPEN_EYE_TEXTURE : CLOSED_EYE_TEXTURE).buffer(bufferSource, RenderType::entityCutoutNoCull),
+                            EYE_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull),
                             packedLight,
                             packedOverlay
                     );
