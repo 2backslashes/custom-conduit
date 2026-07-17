@@ -53,25 +53,20 @@ public class ModRecipes {
         @Override
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
-//            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
-//                    16,
-//                    42,
-//                    Ingredient.of(Items.GOLD_BLOCK),
-//                    List.of(
-//                        new EffectConduitRecipe.ConduitEffect(
-//                            ModEffects.FLIGHT.effect,
-//                            2,
-//                            5.0,
-//                            16.0
-//                        ),
-//                        new EffectConduitRecipe.ConduitEffect(
-//                            MobEffects.NIGHT_VISION,
-//                            0,
-//                            10.0,
-//                            24.0
-//                        )
-//                    )
-//                )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_speed_from_iron"));
+            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+                    16,
+                    42,
+                    Ingredient.of(Items.GOLD_BLOCK),
+                    List.of(
+                        new EffectConduitRecipe.ConduitEffect(
+                            ModEffects.FLIGHT.effect,
+                            2,
+                            16.0,
+                            64.0
+                        )
+                    ),
+                    0xFFEEA0
+                )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_flight_from_iron"));
         }
     }
 
