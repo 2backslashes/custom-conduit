@@ -45,7 +45,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
     private int lastFrameHash = 0;
     public int tickCount;
-    public int color = 0xFFFFFFFF;
+    public int color = 0xFFFFFF;
     private float activeRotation;
     private boolean isActive;
     private final List<BlockPos> effectBlocks = Lists.newArrayList();
@@ -163,10 +163,10 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
         blockEntity.lastFrameHash = newFrameHash;
 
-        float r = 0.3f;
-        float g = 0.3f;
-        float b = 0.3f;
-        float colorTotalInfluence = 0.3f;
+        float colorTotalInfluence = 0.2f;
+        float r = colorTotalInfluence;
+        float g = colorTotalInfluence;
+        float b = colorTotalInfluence;
 
         // Gather active effects.
         blockEntity.activeEffects.clear();
@@ -181,11 +181,12 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
             double powerFactor = recipe.computePowerFactor(validFrameBlocks.size());
 
-            // Accumulate color.
-            r += recipe.colorR();
-            g += recipe.colorG();
-            b += recipe.colorB();
-            colorTotalInfluence += (float) (powerFactor * 0.5 + 0.5);
+            // Accumulate color;
+            float colorInfluence = (float) (powerFactor * 0.5 + 0.5);
+            r += recipe.colorR() * colorInfluence;
+            g += recipe.colorG() * colorInfluence;
+            b += recipe.colorB() * colorInfluence;
+            colorTotalInfluence += colorInfluence;
 
             // Accumulate effects.
             List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
