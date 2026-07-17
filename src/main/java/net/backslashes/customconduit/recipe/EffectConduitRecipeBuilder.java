@@ -1,13 +1,11 @@
-package net.backslashes.extraeffects.recipe;
+package net.backslashes.customconduit.recipe;
 
-import net.backslashes.extraeffects.block.ModBlocks;
+import net.backslashes.customconduit.block.ModBlocks;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

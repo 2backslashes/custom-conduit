@@ -1,9 +1,9 @@
-package net.backslashes.extraeffects.block;
+package net.backslashes.customconduit.block;
 
 import com.mojang.serialization.MapCodec;
 import javax.annotation.Nullable;
 
-import net.backslashes.extraeffects.block.entity.EffectConduitBlockEntity;
+import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;

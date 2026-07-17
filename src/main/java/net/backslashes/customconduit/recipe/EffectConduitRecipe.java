@@ -1,8 +1,6 @@
-package net.backslashes.extraeffects.recipe;
+package net.backslashes.customconduit.recipe;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
-import com.mojang.serialization.codecs.ListCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;

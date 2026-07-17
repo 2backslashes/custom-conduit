@@ -1,4 +1,4 @@
-package net.backslashes.extraeffects;
+package net.backslashes.customconduit;
 
 public class MathUtil {
     public static float lerpf(float a, float b, float x) {

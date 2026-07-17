@@ -1,9 +1,8 @@
-package net.backslashes.extraeffects.recipe;
+package net.backslashes.customconduit.recipe;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 

@@ -1,14 +1,9 @@
-package net.backslashes.extraeffects.block;
+package net.backslashes.customconduit.block;
 
-import net.backslashes.extraeffects.ExtraEffects;
-import net.backslashes.extraeffects.block.entity.EffectConduitBlockEntity;
-import net.backslashes.extraeffects.block.entity.EffectConduitRenderer;
+import net.backslashes.customconduit.CustomConduit;
+import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
+import net.backslashes.customconduit.block.entity.EffectConduitRenderer;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.ConduitBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -22,10 +17,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
-@EventBusSubscriber(modid = ExtraEffects.MODID)
+@EventBusSubscriber(modid = CustomConduit.MODID)
 public class ModBlocks {
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ExtraEffects.MODID);
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, ExtraEffects.MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(CustomConduit.MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CustomConduit.MODID);
 
     public static final DeferredBlock<EffectConduitBlock> EFFECT_CONDUIT = BLOCKS.register(
             "effect_conduit",

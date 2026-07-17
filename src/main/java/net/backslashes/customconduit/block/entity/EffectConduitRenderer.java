@@ -1,8 +1,8 @@
-package net.backslashes.extraeffects.block.entity;
+package net.backslashes.customconduit.block.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.backslashes.extraeffects.ExtraEffects;
+import net.backslashes.customconduit.CustomConduit;
 import net.minecraft.client.Camera;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -28,11 +28,11 @@ import org.joml.Vector3f;
 
 @OnlyIn(Dist.CLIENT)
 public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitBlockEntity> {
-    public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/base"));
-    public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/cage"));
-    public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/wind"));
+    public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/base"));
+    public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/cage"));
+    public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/wind"));
     public static final Material VERTICAL_WIND_TEXTURE = new Material(
-            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/wind_vertical")
+            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/wind_vertical")
     );
     public static final Material EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
     private final ModelPart eye;

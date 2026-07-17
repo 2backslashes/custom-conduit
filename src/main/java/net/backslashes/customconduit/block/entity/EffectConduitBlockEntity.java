@@ -1,4 +1,4 @@
-package net.backslashes.extraeffects.block.entity;//
+package net.backslashes.customconduit.block.entity;//
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by FernFlower decompiler)
 //
@@ -8,12 +8,11 @@ import com.google.common.collect.Lists;
 import java.util.*;
 import java.util.function.Consumer;
 
-import com.mojang.datafixers.util.Pair;
-import net.backslashes.extraeffects.MathUtil;
-import net.backslashes.extraeffects.ServerConfig;
-import net.backslashes.extraeffects.block.ModBlocks;
-import net.backslashes.extraeffects.recipe.EffectConduitRecipe;
-import net.backslashes.extraeffects.recipe.ModRecipes;
+import net.backslashes.customconduit.MathUtil;
+import net.backslashes.customconduit.ServerConfig;
+import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.recipe.EffectConduitRecipe;
+import net.backslashes.customconduit.recipe.ModRecipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
