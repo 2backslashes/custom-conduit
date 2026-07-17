@@ -2,6 +2,7 @@ package net.backslashes.extraeffects.block.entity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.backslashes.extraeffects.ExtraEffects;
 import net.minecraft.client.Camera;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -27,11 +28,11 @@ import org.joml.Vector3f;
 
 @OnlyIn(Dist.CLIENT)
 public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitBlockEntity> {
-    public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/base"));
-    public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/cage"));
-    public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/wind"));
+    public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/base"));
+    public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/cage"));
+    public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/wind"));
     public static final Material VERTICAL_WIND_TEXTURE = new Material(
-            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/wind_vertical")
+            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "entity/conduit/wind_vertical")
     );
     public static final Material EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
     private final ModelPart eye;
@@ -108,13 +109,13 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             }
 
             VertexConsumer vertexconsumer = (i == 1 ? VERTICAL_WIND_TEXTURE : WIND_TEXTURE).buffer(bufferSource, RenderType::entityCutoutNoCull);
-            this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay);
+            this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
             poseStack.scale(0.875F, 0.875F, 0.875F);
             poseStack.mulPose(new Quaternionf().rotationXYZ((float) Math.PI, 0.0F, (float) Math.PI));
-            this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay);
+            this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();
             Camera camera = this.renderer.camera;
             poseStack.pushPose();

@@ -44,6 +44,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
     ){}
 
     public int tickCount;
+    public int color = 0xFFFFFFFF;
     private float activeRotation;
     private boolean isActive;
     private final List<BlockPos> effectBlocks = Lists.newArrayList();
