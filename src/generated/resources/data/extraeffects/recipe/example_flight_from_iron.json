@@ -1,0 +1,16 @@
+{
+  "type": "extraeffects:effect_conduit",
+  "colorB": 0.5,
+  "colorG": 0.8,
+  "effects": [
+    {
+      "amplifier": 2,
+      "effect": "extraeffects:flight",
+      "maxRange": 64.0,
+      "minRange": 16.0
+    }
+  ],
+  "frameIngredient": {
+    "item": "minecraft:gold_block"
+  }
+}

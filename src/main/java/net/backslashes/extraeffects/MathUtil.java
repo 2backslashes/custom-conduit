@@ -14,7 +14,7 @@ public class MathUtil {
     }
 
     public record RgbColor(float r, float g, float b){
-        static RgbColor fromArgbHex(int argb){
+        public static RgbColor fromArgbHex(int argb){
             return new RgbColor(
                     (float)((argb >> 16) & 0xFF) / 255.0f,
                     (float)((argb >> 8) & 0xFF) / 255.0f,
@@ -22,7 +22,7 @@ public class MathUtil {
             );
         }
 
-        static RgbColor lerp(RgbColor a, RgbColor b, float value){
+        public static RgbColor lerp(RgbColor a, RgbColor b, float value){
             return new RgbColor(
                     lerpf(a.r, b.r, value),
                     lerpf(a.g, b.g, value),
@@ -30,7 +30,7 @@ public class MathUtil {
             );
         }
 
-        int toHexArgb(){
+        public int toHexArgb(){
             return ((int)(r * 255.0f) << 16) | ((int)(g * 255.0f) << 8) | (int)(b * 255.0f);
         }
     }

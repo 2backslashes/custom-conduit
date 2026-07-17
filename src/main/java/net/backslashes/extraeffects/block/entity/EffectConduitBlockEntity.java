@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import com.mojang.datafixers.util.Pair;
+import net.backslashes.extraeffects.MathUtil;
 import net.backslashes.extraeffects.ServerConfig;
 import net.backslashes.extraeffects.block.ModBlocks;
 import net.backslashes.extraeffects.recipe.EffectConduitRecipe;
@@ -43,6 +44,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
             List<BlockState> validFrameBlocks
     ){}
 
+    private int lastFrameHash = 0;
     public int tickCount;
     public int color = 0xFFFFFFFF;
     private float activeRotation;
@@ -67,7 +69,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         ++blockEntity.tickCount;
         long i = level.getGameTime();
         if (i % 40L == 0L) {
-            computeActiveEffects(level, pos, blockEntity.activeEffects);
+            computeActiveEffects(level, pos, blockEntity);
             blockEntity.isActive = !blockEntity.activeEffects.isEmpty();
         }
 
@@ -93,7 +95,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
         if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
             // Compute active effects.
-            computeActiveEffects(level, pos, blockEntity.activeEffects);
+            computeActiveEffects(level, pos, blockEntity);
             boolean shouldBeActive = !blockEntity.activeEffects.isEmpty();
 
             // Toggle active state.
@@ -138,7 +140,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
     }
 
-    private static void computeActiveEffects(Level level, BlockPos center, List<ActiveEffect> activeEffects) {
+    private static void computeActiveEffects(Level level, BlockPos center, EffectConduitBlockEntity blockEntity) {
         List<BlockState> frameBlocks = new ArrayList<>();
         iterFrameCandidates(center, (pos) -> {
              frameBlocks.add(level.getBlockState(pos));
@@ -155,8 +157,20 @@ public class EffectConduitBlockEntity extends BlockEntity {
             }
         }
 
+        // Early exit if the frame hasn't actually changed composition.
+        int newFrameHash = frameBlocksByType.hashCode();
+        if(newFrameHash == blockEntity.lastFrameHash){
+            return;
+        }
+        blockEntity.lastFrameHash = newFrameHash;
+
+        float r = 0.3f;
+        float g = 0.3f;
+        float b = 0.3f;
+        float colorTotalInfluence = 0.3f;
+
         // Gather active effects.
-        activeEffects.clear();
+        blockEntity.activeEffects.clear();
         List<RecipeHolder<EffectConduitRecipe>> allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
         for (RecipeHolder<EffectConduitRecipe> recipeHolder : allRecipes) {
             EffectConduitRecipe recipe = recipeHolder.value();
@@ -166,10 +180,19 @@ public class EffectConduitBlockEntity extends BlockEntity {
                 continue;
             }
 
+            double powerFactor = recipe.computePowerFactor(validFrameBlocks.size());
+
+            // Accumulate color.
+            r += recipe.colorR();
+            g += recipe.colorG();
+            b += recipe.colorB();
+            colorTotalInfluence += (float) (powerFactor * 0.5 + 0.5);
+
+            // Accumulate effects.
             List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
             for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
-                double range = recipe.computeEffectRange(validFrameBlocks.size(), effect);
-                activeEffects.add(new ActiveEffect(
+                double range = effect.computeEffectRange(powerFactor);
+                blockEntity.activeEffects.add(new ActiveEffect(
                         effect.effect(),
                         effect.amplifier(),
                         range,
@@ -178,8 +201,10 @@ public class EffectConduitBlockEntity extends BlockEntity {
             }
         }
 
+        blockEntity.color = new MathUtil.RgbColor(r / colorTotalInfluence, g / colorTotalInfluence, b / colorTotalInfluence).toHexArgb();
+
         // Sort effects by range, high-to-low.
-        activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
+        blockEntity.activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
     }
 
     private static void applyEffects(Level level, BlockPos pos, List<ActiveEffect> activeEffects) {

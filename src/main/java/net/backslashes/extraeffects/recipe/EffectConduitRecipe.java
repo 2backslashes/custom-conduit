@@ -27,7 +27,9 @@ public record EffectConduitRecipe(
         int maxFrameBlockCount,
         Ingredient frameBlockIngredient,
         List<ConduitEffect> outEffects,
-        int color
+        float colorR,
+        float colorG,
+        float colorB
 ) implements Recipe<EffectConduitRecipeInput> {
     public record ConduitEffect(
         Holder<MobEffect> effect,
@@ -41,6 +43,10 @@ public record EffectConduitRecipe(
                 Codec.DOUBLE.optionalFieldOf("minRange", 32.0).forGetter(ConduitEffect::minRange),
                 Codec.DOUBLE.optionalFieldOf("maxRange", 96.0).forGetter(ConduitEffect::maxRange)
         ).apply(inst, ConduitEffect::new));
+
+        public double computeEffectRange(double powerFactor){
+            return powerFactor * (maxRange - minRange) + minRange;
+        }
     }
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
@@ -64,13 +70,8 @@ public record EffectConduitRecipe(
         return validBlocks;
     }
 
-    public double computeEffectRange(int validFrameBlockCount, ConduitEffect effect){
-        if(validFrameBlockCount < minFrameBlockCount){
-            return 0.0;
-        }
-
-        double factor = Double.min(1.0, (validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount));
-        return factor * (effect.maxRange - effect.minRange) + effect.minRange;
+    public double computePowerFactor(int validFrameBlockCount){
+        return Double.min(1.0, (validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount));
     }
 
     @Override
@@ -104,7 +105,9 @@ public record EffectConduitRecipe(
                 Codec.INT.optionalFieldOf("maxFrameBlockCount", 42).forGetter(EffectConduitRecipe::maxFrameBlockCount),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
                 ConduitEffect.CODEC.listOf(1, 255).fieldOf("effects").forGetter(EffectConduitRecipe::outEffects),
-                Codec.INT.optionalFieldOf("color", 0xFFFFFF).forGetter(EffectConduitRecipe::color)
+                Codec.FLOAT.optionalFieldOf("colorR", 1.0f).forGetter(EffectConduitRecipe::colorR),
+                Codec.FLOAT.optionalFieldOf("colorG", 1.0f).forGetter(EffectConduitRecipe::colorG),
+                Codec.FLOAT.optionalFieldOf("colorB", 1.0f).forGetter(EffectConduitRecipe::colorB)
         ).apply(inst, EffectConduitRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, EffectConduitRecipe> STREAM_CODEC = StreamCodec.of(EffectConduitRecipeSerializer::toNetwork, EffectConduitRecipeSerializer::fromNetwork);
@@ -132,8 +135,18 @@ public record EffectConduitRecipe(
                 double maxRange = buffer.readDouble();
                 effects.add(new ConduitEffect(mobEffect, amplifier, minRange, maxRange));
             }
-            int color = buffer.readInt();
-            return new EffectConduitRecipe(minFrameBlockCount, maxFrameBlockCount, frameBlockIngredient, effects, color);
+            float colorR = buffer.readFloat();
+            float colorG = buffer.readFloat();
+            float colorB = buffer.readFloat();
+            return new EffectConduitRecipe(
+                    minFrameBlockCount,
+                    maxFrameBlockCount,
+                    frameBlockIngredient,
+                    effects,
+                    colorR,
+                    colorG,
+                    colorB
+            );
         }
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
@@ -147,7 +160,9 @@ public record EffectConduitRecipe(
                 buffer.writeDouble(effect.minRange);
                 buffer.writeDouble(effect.maxRange);
             }
-            buffer.writeInt(recipe.color);
+            buffer.writeFloat(recipe.colorR);
+            buffer.writeFloat(recipe.colorG);
+            buffer.writeFloat(recipe.colorB);
         }
     }
 }

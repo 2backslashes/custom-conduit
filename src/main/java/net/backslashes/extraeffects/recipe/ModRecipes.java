@@ -65,7 +65,9 @@ public class ModRecipes {
                             64.0
                         )
                     ),
-                    0xFFEEA0
+                    1.0f,
+                    0.8f,
+                    0.5f
                 )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_flight_from_iron"));
         }
     }
