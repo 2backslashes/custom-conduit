@@ -1,6 +1,7 @@
 package net.backslashes.customconduit.recipe;
 
 import net.backslashes.customconduit.CustomConduit;
+import net.backslashes.customconduit.MathUtil;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
@@ -62,9 +63,7 @@ public class ModRecipes {
                             64.0
                         )
                     ),
-                    1.0f,
-                    0.8f,
-                    0.5f
+                    new MathUtil.RgbColor(1.0f, 0.8f, 0.3f)
                 )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_flight_from_iron"));
         }
     }

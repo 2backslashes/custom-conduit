@@ -1,5 +1,6 @@
 package net.backslashes.customconduit;
 import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.particle.ModParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
 import org.slf4j.Logger;
 
@@ -30,6 +31,7 @@ public class CustomConduit {
 
         ModBlocks.register(modEventBus);
         ModRecipes.register(modEventBus);
+        ModParticles.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 

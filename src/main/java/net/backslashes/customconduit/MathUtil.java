@@ -1,5 +1,13 @@
 package net.backslashes.customconduit;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.Holder;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.effect.MobEffect;
+import org.jetbrains.annotations.NotNull;
+
 public class MathUtil {
     public static float lerpf(float a, float b, float x) {
         return a + x * (b - a);
@@ -14,6 +22,29 @@ public class MathUtil {
     }
 
     public record RgbColor(float r, float g, float b){
+        public static final Codec<RgbColor> CODEC = RecordCodecBuilder.create(inst -> inst.group(
+           Codec.FLOAT.fieldOf("r").forGetter(RgbColor::r),
+           Codec.FLOAT.fieldOf("g").forGetter(RgbColor::g),
+           Codec.FLOAT.fieldOf("b").forGetter(RgbColor::b)
+        ).apply(inst, RgbColor::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, RgbColor> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, RgbColor>() {
+            @Override
+            public @NotNull RgbColor decode(RegistryFriendlyByteBuf buffer) {
+                float r = buffer.readFloat();
+                float g = buffer.readFloat();
+                float b = buffer.readFloat();
+                return new RgbColor(r,g,b);
+            }
+
+            @Override
+            public void encode(RegistryFriendlyByteBuf buffer, RgbColor color) {
+                buffer.writeFloat(color.r);
+                buffer.writeFloat(color.g);
+                buffer.writeFloat(color.b);
+            }
+        };
+
         public static RgbColor fromArgbHex(int argb){
             return new RgbColor(
                     (float)((argb >> 16) & 0xFF) / 255.0f,
