@@ -183,9 +183,9 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
             // Accumulate color;
             float colorInfluence = (float) (powerFactor * 0.5 + 0.5);
-            r += recipe.colorR() * colorInfluence;
-            g += recipe.colorG() * colorInfluence;
-            b += recipe.colorB() * colorInfluence;
+            r += recipe.color().r() * colorInfluence;
+            g += recipe.color().g() * colorInfluence;
+            b += recipe.color().b() * colorInfluence;
             colorTotalInfluence += colorInfluence;
 
             // Accumulate effects.
