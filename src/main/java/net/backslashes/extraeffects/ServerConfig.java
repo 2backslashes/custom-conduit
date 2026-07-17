@@ -7,6 +7,14 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class ServerConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
+    public static final ModConfigSpec.IntValue CONDUIT_TICKS_PER_REFRESH = BUILDER
+            .comment("The Effect Conduit will check its frame and reapply effects every N ticks. Lower values may hurt performance.")
+            .defineInRange("ConduitTicksPerRefresh", 40, 1, 1200);
+
+    public static final ModConfigSpec.IntValue CONDUIT_EFFECT_DURATION_TICKS = BUILDER
+            .comment("How long effects granted by the Effect Conduit should last in ticks. This value should always be higher than the refresh rate. Note that night vision will flicker with less than 10 seconds remaining.")
+            .defineInRange("ConduitEffectDurationTicks", 260, 1, 1200);
+
     public static final ModConfigSpec.DoubleValue FLIGHT_SPEED_PER_LEVEL = BUILDER
             .comment("The flight speed per level of Flight. Vanilla creative flight speed is 0.05.")
             .defineInRange("FlightSpeedPerLevel", 0.025, 0.0, 100.0);

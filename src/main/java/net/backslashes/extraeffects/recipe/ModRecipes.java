@@ -10,6 +10,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -22,6 +23,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @EventBusSubscriber(modid = ExtraEffects.MODID)
@@ -51,15 +53,25 @@ public class ModRecipes {
         @Override
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
-            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
-                    16,
-                    42,
-                    32.0,
-                    96.0,
-                    Ingredient.of(Items.GOLD_BLOCK),
-                    Arrays.asList(ModEffects.FLIGHT.effect),
-                    Arrays.asList(0)
-                )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_flight_from_gold"));
+//            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+//                    16,
+//                    42,
+//                    Ingredient.of(Items.GOLD_BLOCK),
+//                    List.of(
+//                        new EffectConduitRecipe.ConduitEffect(
+//                            ModEffects.FLIGHT.effect,
+//                            2,
+//                            5.0,
+//                            16.0
+//                        ),
+//                        new EffectConduitRecipe.ConduitEffect(
+//                            MobEffects.NIGHT_VISION,
+//                            0,
+//                            10.0,
+//                            24.0
+//                        )
+//                    )
+//                )).save(output, ResourceLocation.fromNamespaceAndPath(ExtraEffects.MODID, "example_speed_from_iron"));
         }
     }
 

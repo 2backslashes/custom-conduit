@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import com.mojang.datafixers.util.Pair;
+import net.backslashes.extraeffects.ServerConfig;
 import net.backslashes.extraeffects.block.ModBlocks;
 import net.backslashes.extraeffects.recipe.EffectConduitRecipe;
 import net.backslashes.extraeffects.recipe.ModRecipes;
@@ -89,7 +90,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         ++blockEntity.tickCount;
         long i = level.getGameTime();
 
-        if (i % 40L != 0L) {
+        if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
             // Compute active effects.
             computeActiveEffects(level, pos, blockEntity.activeEffects);
             boolean shouldBeActive = !blockEntity.activeEffects.isEmpty();
@@ -164,15 +165,12 @@ public class EffectConduitBlockEntity extends BlockEntity {
                 continue;
             }
 
-            List<Holder<MobEffect>> outEffects = recipe.outEffects();
-            List<Integer> outEffectAmplifiers = recipe.outEffectAmplifiers();
-            double range = recipe.computeEffectRange(validFrameBlocks.size());
-            for (int i=0; i<outEffects.size(); ++i) {
-                Holder<MobEffect> effect = outEffects.get(i);
-                int amplifier = outEffectAmplifiers.get(i);
+            List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
+            for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
+                double range = recipe.computeEffectRange(validFrameBlocks.size(), effect);
                 activeEffects.add(new ActiveEffect(
-                        effect,
-                        amplifier,
+                        effect.effect(),
+                        effect.amplifier(),
                         range,
                         validFrameBlocks
                 ));
@@ -180,7 +178,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
 
         // Sort effects by range, high-to-low.
-        activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit));
+        activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
     }
 
     private static void applyEffects(Level level, BlockPos pos, List<ActiveEffect> activeEffects) {
@@ -202,7 +200,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
                     break;
                 }
 
-                player.addEffect(new MobEffectInstance(effect.effect(), 260, effect.amplifier, true, true));
+                player.addEffect(new MobEffectInstance(effect.effect(), ServerConfig.CONDUIT_EFFECT_DURATION_TICKS.get(), effect.amplifier, true, true));
             }
         }
     }

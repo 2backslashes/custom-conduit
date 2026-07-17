@@ -1,0 +1,22 @@
+{
+  "type": "extraeffects:effect_conduit",
+  "effects": [
+    {
+      "amplifier": 2,
+      "effect": "extraeffects:flight",
+      "maxRange": 16.0,
+      "minRange": 5.0
+    },
+    {
+      "amplifier": 0,
+      "effect": "minecraft:night_vision",
+      "maxRange": 24.0,
+      "minRange": 10.0
+    }
+  ],
+  "frameIngredient": {
+    "item": "minecraft:gold_block"
+  },
+  "maxFrameBlockCount": 42,
+  "minFrameBlockCount": 16
+}

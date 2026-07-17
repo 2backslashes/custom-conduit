@@ -1,10 +1,8 @@
 package net.backslashes.extraeffects.recipe;
 
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.*;
+import com.mojang.serialization.codecs.ListCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -27,12 +25,22 @@ import java.util.Map;
 public record EffectConduitRecipe(
         int minFrameBlockCount,
         int maxFrameBlockCount,
-        double minRange,
-        double maxRange,
         Ingredient frameBlockIngredient,
-        List<Holder<MobEffect>> outEffects,
-        List<Integer> outEffectAmplifiers
+        List<ConduitEffect> outEffects
 ) implements Recipe<EffectConduitRecipeInput> {
+    public record ConduitEffect(
+        Holder<MobEffect> effect,
+        int amplifier,
+        double minRange,
+        double maxRange
+    ){
+        public static final Codec<ConduitEffect> CODEC = RecordCodecBuilder.create(inst -> inst.group(
+                MobEffect.CODEC.fieldOf("effect").forGetter(ConduitEffect::effect),
+                Codec.INT.fieldOf("amplifier").forGetter(ConduitEffect::amplifier),
+                Codec.DOUBLE.fieldOf("minRange").forGetter(ConduitEffect::minRange),
+                Codec.DOUBLE.fieldOf("maxRange").forGetter(ConduitEffect::maxRange)
+        ).apply(inst, ConduitEffect::new));
+    }
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
         return NonNullList.of(frameBlockIngredient);
@@ -55,13 +63,13 @@ public record EffectConduitRecipe(
         return validBlocks;
     }
 
-    public double computeEffectRange(int validFrameBlockCount){
+    public double computeEffectRange(int validFrameBlockCount, ConduitEffect effect){
         if(validFrameBlockCount < minFrameBlockCount){
             return 0.0;
         }
 
         double factor = Double.min(1.0, (validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount));
-        return factor * (maxRange - minRange) + minRange;
+        return factor * (effect.maxRange - effect.minRange) + effect.minRange;
     }
 
     @Override
@@ -93,11 +101,8 @@ public record EffectConduitRecipe(
         public static final MapCodec<EffectConduitRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
                 Codec.INT.fieldOf("minFrameBlockCount").forGetter(EffectConduitRecipe::minFrameBlockCount),
                 Codec.INT.fieldOf("maxFrameBlockCount").forGetter(EffectConduitRecipe::maxFrameBlockCount),
-                Codec.DOUBLE.fieldOf("minRange").forGetter(EffectConduitRecipe::minRange),
-                Codec.DOUBLE.fieldOf("maxRange").forGetter(EffectConduitRecipe::maxRange),
-                Ingredient.CODEC_NONEMPTY.fieldOf("frame").forGetter(EffectConduitRecipe::frameBlockIngredient),
-                MobEffect.CODEC.listOf().fieldOf("effects").forGetter((recipe) -> recipe.outEffects),
-                Codec.INT.listOf().fieldOf("effectAmplifiers").forGetter((recipe) -> recipe.outEffectAmplifiers)
+                Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
+                ConduitEffect.CODEC.listOf(1, 255).fieldOf("effects").forGetter(EffectConduitRecipe::outEffects)
         ).apply(inst, EffectConduitRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, EffectConduitRecipe> STREAM_CODEC = StreamCodec.of(EffectConduitRecipeSerializer::toNetwork, EffectConduitRecipeSerializer::fromNetwork);
@@ -115,29 +120,29 @@ public record EffectConduitRecipe(
         private static EffectConduitRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             int minFrameBlockCount = buffer.readByte();
             int maxFrameBlockCount = buffer.readByte();
-            double minRange = buffer.readDouble();
-            double maxRange = buffer.readDouble();
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
-            List<Holder<MobEffect>> effects = new ArrayList<>();
-            List<Integer> effectAmplifiers = new ArrayList<>();
+            List<ConduitEffect> effects = new ArrayList<>();
             int effectCount = buffer.readVarInt();
             for(int i=0; i<effectCount; ++i){
-                effects.add(MobEffect.STREAM_CODEC.decode(buffer));
-                effectAmplifiers.add(buffer.readInt());
+                Holder<MobEffect> mobEffect = MobEffect.STREAM_CODEC.decode(buffer);
+                int amplifier = buffer.readInt();
+                double minRange = buffer.readDouble();
+                double maxRange = buffer.readDouble();
+                effects.add(new ConduitEffect(mobEffect, amplifier, minRange, maxRange));
             }
-            return new EffectConduitRecipe(minFrameBlockCount, maxFrameBlockCount, minRange, maxRange, frameBlockIngredient, effects, effectAmplifiers);
+            return new EffectConduitRecipe(minFrameBlockCount, maxFrameBlockCount, frameBlockIngredient, effects);
         }
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
             buffer.writeByte(recipe.minFrameBlockCount);
             buffer.writeByte(recipe.maxFrameBlockCount);
-            buffer.writeDouble(recipe.minRange);
-            buffer.writeDouble(recipe.maxRange);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);
             buffer.writeVarInt(recipe.outEffects.size());
-            for(int i=0; i<recipe.outEffects.size(); ++i){
-                MobEffect.STREAM_CODEC.encode(buffer, recipe.outEffects.get(i));
-                buffer.writeInt(recipe.outEffectAmplifiers.get(i));
+            for(ConduitEffect effect : recipe.outEffects){
+                MobEffect.STREAM_CODEC.encode(buffer, effect.effect);
+                buffer.writeInt(effect.amplifier);
+                buffer.writeDouble(effect.minRange);
+                buffer.writeDouble(effect.maxRange);
             }
         }
     }

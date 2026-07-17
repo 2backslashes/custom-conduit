@@ -1,16 +1,16 @@
 {
   "type": "extraeffects:effect_conduit",
-  "effectAmplifiers": [
-    0
-  ],
   "effects": [
-    "extraeffects:flight"
+    {
+      "amplifier": 0,
+      "effect": "minecraft:speed",
+      "maxRange": 32.0,
+      "minRange": 24.0
+    }
   ],
-  "frame": {
-    "item": "minecraft:gold_block"
+  "frameIngredient": {
+    "item": "minecraft:iron_block"
   },
   "maxFrameBlockCount": 42,
-  "maxRange": 96.0,
-  "minFrameBlockCount": 16,
-  "minRange": 32.0
+  "minFrameBlockCount": 16
 }
