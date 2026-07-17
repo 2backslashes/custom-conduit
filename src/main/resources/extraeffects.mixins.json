@@ -1,7 +1,0 @@
-{
-  "required": true,
-  "package": "net.backslashes.customconduit.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": [
-  ]
-}

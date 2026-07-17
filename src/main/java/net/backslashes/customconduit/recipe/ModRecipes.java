@@ -1,7 +1,6 @@
 package net.backslashes.customconduit.recipe;
 
 import net.backslashes.customconduit.CustomConduit;
-import net.backslashes.customconduit.effect.ModEffects;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
@@ -9,6 +8,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -56,8 +56,8 @@ public class ModRecipes {
                     Ingredient.of(Items.GOLD_BLOCK),
                     List.of(
                         new EffectConduitRecipe.ConduitEffect(
-                            ModEffects.FLIGHT.effect,
-                            2,
+                            MobEffects.GLOWING,
+                            0,
                             16.0,
                             64.0
                         )

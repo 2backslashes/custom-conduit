@@ -18,7 +18,7 @@ import net.neoforged.neoforge.event.server.ServerStartingEvent;
 @Mod(CustomConduit.MODID)
 public class CustomConduit {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "extraeffects";
+    public static final String MODID = "customconduit";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
 

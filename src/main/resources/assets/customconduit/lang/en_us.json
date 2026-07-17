@@ -1,0 +1,13 @@
+{
+  "itemGroup.customconduit": "Example Mod Tab",
+  "block.customconduit.example_block": "Example Block",
+  "item.customconduit.example_item": "Example Item",
+
+  "customconduit.configuration.title": "Custom Conduit Configs",
+  "customconduit.configuration.section.customconduit.common.toml": "Custom Conduit Configs",
+  "customconduit.configuration.section.customconduit.common.toml.title": "Custom Conduit Configs",
+  "customconduit.configuration.items": "Item List",
+  "customconduit.configuration.logDirtBlock": "Log Dirt Block",
+  "customconduit.configuration.magicNumberIntroduction": "Magic Number Text",
+  "customconduit.configuration.magicNumber": "Magic Number"
+}
