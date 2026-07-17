@@ -3,6 +3,7 @@ import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.ModParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
+import net.backslashes.customconduit.sound.ModSounds;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
@@ -36,6 +37,7 @@ public class CustomConduit {
         ModBlocks.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModParticles.register(modEventBus);
+        ModSounds.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 

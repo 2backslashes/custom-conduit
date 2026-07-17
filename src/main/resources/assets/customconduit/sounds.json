@@ -1,0 +1,20 @@
+{
+  "conduit_activate": {
+    "subtitle":  "sounds.customconduit.conduit_activate",
+    "sounds": [
+      "customconduit:conduit_activate"
+    ]
+  },
+  "conduit_deactivate": {
+    "subtitle":  "sounds.customconduit.conduit_deactivate",
+    "sounds": [
+      "customconduit:conduit_deactivate"
+    ]
+  },
+  "conduit_ambient": {
+    "subtitle":  "sounds.customconduit.conduit_ambient",
+    "sounds": [
+      "customconduit:conduit_ambient"
+    ]
+  }
+}

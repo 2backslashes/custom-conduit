@@ -14,6 +14,7 @@ import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.backslashes.customconduit.recipe.ModRecipes;
+import net.backslashes.customconduit.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -86,11 +87,11 @@ public class EffectConduitBlockEntity extends BlockEntity {
     }
 
     private static void onActivated(Level level, BlockPos pos){
-        level.playSound(null, pos, SoundEvents.CONDUIT_ACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, pos, ModSounds.CONDUIT_ACTIVATE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     private static void onDeactivated(Level level, BlockPos pos){
-        level.playSound(null, pos, SoundEvents.CONDUIT_DEACTIVATE, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(null, pos, ModSounds.CONDUIT_DEACTIVATE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
@@ -118,14 +119,14 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
 
         if (blockEntity.isActive) {
-            if (i % 80L == 0L) {
-                level.playSound(null, pos, SoundEvents.CONDUIT_AMBIENT, SoundSource.BLOCKS, 1.0F, 1.0F);
+            if (i % 100L == 0L) {
+                level.playSound(null, pos, ModSounds.CONDUIT_AMBIENT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
 
-            if (i > blockEntity.nextAmbientSoundActivation) {
-                blockEntity.nextAmbientSoundActivation = i + 60L + (long)level.getRandom().nextInt(40);
-                level.playSound(null, pos, SoundEvents.CONDUIT_AMBIENT_SHORT, SoundSource.BLOCKS, 1.0F, 1.0F);
-            }
+//            if (i > blockEntity.nextAmbientSoundActivation) {
+//                blockEntity.nextAmbientSoundActivation = i + 60L + (long)level.getRandom().nextInt(40);
+//                level.playSound(null, pos, ModSounds.CONDUIT_AMBIENT_SHORT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
+//            }
         }
     }
 
