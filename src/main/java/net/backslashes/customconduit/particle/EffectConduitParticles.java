@@ -20,15 +20,35 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class EffectConduitParticles extends TextureSheetParticle {
-    protected EffectConduitParticles(ClientLevel level, double x, double y, double z, SpriteSet spriteSet, MathUtil.RgbColor color) {
+    SpriteSet spriteSet;
+    protected EffectConduitParticles(ClientLevel level, double x, double y, double z, SpriteSet spriteSet, Vec3 destination, MathUtil.RgbColor color) {
         super(level, x, y, z);
 
-        this.friction = -0.4f;
-        this.lifetime = 40;
+        this.spriteSet = spriteSet;
+        this.friction = 0.9f;
+        this.hasPhysics = false;
+        this.lifetime = 50;
         this.setSpriteFromAge(spriteSet);
         this.rCol = color.r();
         this.gCol = color.g();
         this.bCol = color.b();
+
+        float speed = 0.075f;
+        this.xd = speed * (destination.x - x);
+        this.yd = speed * (destination.y - y);
+        this.zd = speed * (destination.z - z);
+    }
+
+    @Override
+    public void tick(){
+        super.tick();
+        this.setSpriteFromAge(this.spriteSet);
+    }
+
+    @Override
+    public float getQuadSize(float scaleFactor) {
+        float f = ((float)this.age + scaleFactor) / (float)this.lifetime;
+        return this.quadSize * (1.0F - f * f);
     }
 
     @Override
@@ -85,7 +105,7 @@ public class EffectConduitParticles extends TextureSheetParticle {
                 double vy,
                 double vz
         ) {
-            return new EffectConduitParticles(clientLevel, px, py, pz, spriteSet, options.color);
+            return new EffectConduitParticles(clientLevel, px, py, pz, spriteSet, options.destination, options.color);
         }
     }
 }

@@ -1,5 +1,8 @@
 {
   "textures": [
-    "customconduit:effect_conduit"
+    "customconduit:effect_conduit_0",
+    "customconduit:effect_conduit_1",
+    "customconduit:effect_conduit_2",
+    "customconduit:effect_conduit_3"
   ]
 }

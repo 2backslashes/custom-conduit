@@ -241,15 +241,15 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
         for(ActiveRecipe recipe : blockEntity.activeRecipes){
             for(BlockPos blockpos : recipe.activeFrameBlocks) {
-                if (randomsource.nextInt(50) == 0) {
+                if (randomsource.nextInt(100) == 0) {
                     level.addParticle(
                             new EffectConduitParticles.EffectConduitParticleOptions(
                                 pos.getCenter(),
                                 recipe.recipe.color()
                             ),
-                            (double) blockpos.getX(),
-                            (double) blockpos.getY(),
-                            (double) blockpos.getZ(),
+                            (double) blockpos.getX() + level.random.nextFloat(),
+                            (double) blockpos.getY() + level.random.nextFloat(),
+                            (double) blockpos.getZ() + level.random.nextFloat(),
                             0.0,
                             0.0,
                             0.0
