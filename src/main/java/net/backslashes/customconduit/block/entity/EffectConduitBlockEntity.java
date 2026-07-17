@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import net.backslashes.customconduit.MathUtil;
 import net.backslashes.customconduit.ServerConfig;
 import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.backslashes.customconduit.recipe.ModRecipes;
 import net.minecraft.core.BlockPos;
@@ -39,8 +40,12 @@ public class EffectConduitBlockEntity extends BlockEntity {
     public record ActiveEffect(
             Holder<MobEffect> effect,
             int amplifier,
-            double rangeLimit,
-            List<BlockState> validFrameBlocks
+            double rangeLimit
+    ){}
+
+    public record ActiveRecipe(
+            EffectConduitRecipe recipe,
+            List<BlockPos> activeFrameBlocks
     ){}
 
     private int lastFrameHash = 0;
@@ -48,9 +53,9 @@ public class EffectConduitBlockEntity extends BlockEntity {
     public int color = 0xFFFFFF;
     private float activeRotation;
     private boolean isActive;
-    private final List<BlockPos> effectBlocks = Lists.newArrayList();
     private long nextAmbientSoundActivation;
     List<ActiveEffect> activeEffects = new ArrayList<>();
+    List<ActiveRecipe> activeRecipes = new ArrayList<>();
 
     public EffectConduitBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlocks.EFFECT_CONDUIT_BLOCK_ENTITY.get(), pos, blockState);
@@ -73,7 +78,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
 
         // TODO block list
-        animationTick(level, pos, Collections.emptyList(), blockEntity.tickCount);
+        animationTick(level, pos, blockEntity);
         if (blockEntity.isActive) {
             ++blockEntity.activeRotation;
         }
@@ -140,21 +145,16 @@ public class EffectConduitBlockEntity extends BlockEntity {
     }
 
     private static void computeActiveEffects(Level level, BlockPos center, EffectConduitBlockEntity blockEntity) {
-        List<BlockState> frameBlocks = new ArrayList<>();
+        HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
         iterFrameCandidates(center, (pos) -> {
-             frameBlocks.add(level.getBlockState(pos));
-        });
-
-        HashMap<Block, List<BlockState>> frameBlocksByType = new HashMap<>();
-        for (BlockState blockState : frameBlocks) {
-            Block block = blockState.getBlock();
-            List<BlockState> blocksOfType = frameBlocksByType.get(block);
+            Block block = level.getBlockState(pos).getBlock();
+            List<BlockPos> blocksOfType = frameBlocksByType.get(block);
             if(blocksOfType == null){
-                frameBlocksByType.put(block, new ArrayList<>(List.of(blockState)));
+                frameBlocksByType.put(block, new ArrayList<>(List.of(pos)));
             } else {
-                blocksOfType.add(blockState);
+                blocksOfType.add(pos);
             }
-        }
+        });
 
         // Early exit if the frame hasn't actually changed composition.
         int newFrameHash = frameBlocksByType.hashCode();
@@ -170,10 +170,11 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
         // Gather active effects.
         blockEntity.activeEffects.clear();
+        blockEntity.activeRecipes.clear();
         List<RecipeHolder<EffectConduitRecipe>> allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
         for (RecipeHolder<EffectConduitRecipe> recipeHolder : allRecipes) {
             EffectConduitRecipe recipe = recipeHolder.value();
-            List<BlockState> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
+            List<BlockPos> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
 
             if(validFrameBlocks.size() < recipe.minFrameBlockCount()){
                 continue;
@@ -188,6 +189,8 @@ public class EffectConduitBlockEntity extends BlockEntity {
             b += recipe.color().b() * colorInfluence;
             colorTotalInfluence += colorInfluence;
 
+            blockEntity.activeRecipes.add(new ActiveRecipe(recipe, validFrameBlocks));
+
             // Accumulate effects.
             List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
             for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
@@ -195,8 +198,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
                 blockEntity.activeEffects.add(new ActiveEffect(
                         effect.effect(),
                         effect.amplifier(),
-                        range,
-                        validFrameBlocks
+                        range
                 ));
             }
         }
@@ -231,19 +233,28 @@ public class EffectConduitBlockEntity extends BlockEntity {
         }
     }
 
-    private static void animationTick(Level level, BlockPos pos, List<BlockPos> positions, int tickCount) {
+    private static void animationTick(Level level, BlockPos pos, EffectConduitBlockEntity blockEntity) {
         RandomSource randomsource = level.random;
-        double d0 = Mth.sin((float)(tickCount + 35) * 0.1F) / 2.0F + 0.5F;
+        double d0 = Mth.sin((float)(blockEntity.tickCount + 35) * 0.1F) / 2.0F + 0.5F;
         d0 = (d0 * d0 + d0) * (double)0.3F;
         Vec3 vec3 = new Vec3((double)pos.getX() + (double)0.5F, (double)pos.getY() + (double)1.5F + d0, (double)pos.getZ() + (double)0.5F);
 
-        for(BlockPos blockpos : positions) {
-            if (randomsource.nextInt(50) == 0) {
-                BlockPos blockpos1 = blockpos.subtract(pos);
-                float f = -0.5F + randomsource.nextFloat() + (float)blockpos1.getX();
-                float f1 = -2.0F + randomsource.nextFloat() + (float)blockpos1.getY();
-                float f2 = -0.5F + randomsource.nextFloat() + (float)blockpos1.getZ();
-                level.addParticle(ParticleTypes.NAUTILUS, vec3.x, vec3.y, vec3.z, f, f1, f2);
+        for(ActiveRecipe recipe : blockEntity.activeRecipes){
+            for(BlockPos blockpos : recipe.activeFrameBlocks) {
+                if (randomsource.nextInt(50) == 0) {
+                    level.addParticle(
+                            new EffectConduitParticles.EffectConduitParticleOptions(
+                                pos.getCenter(),
+                                recipe.recipe.color()
+                            ),
+                            (double) blockpos.getX(),
+                            (double) blockpos.getY(),
+                            (double) blockpos.getZ(),
+                            0.0,
+                            0.0,
+                            0.0
+                    );
+                }
             }
         }
     }

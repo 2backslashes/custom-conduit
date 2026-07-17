@@ -1,7 +1,11 @@
 package net.backslashes.customconduit;
 import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.ModParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -46,5 +50,14 @@ public class CustomConduit {
     // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
+    }
+
+
+    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
+    public static class ClientModEvents {
+        @SubscribeEvent
+        public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
+            event.registerSpriteSet(ModParticles.EFFECT_CONDUIT_PARTICLES.get(), EffectConduitParticles.Provider::new);
+        }
     }
 }

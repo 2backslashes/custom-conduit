@@ -3,6 +3,7 @@ package net.backslashes.customconduit.recipe;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.backslashes.customconduit.MathUtil;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -75,9 +76,9 @@ public record EffectConduitRecipe(
         return false;
     }
 
-    public List<BlockState> computeValidFrameBlocks(HashMap<Block, List<BlockState>> frameBlocksByType){
-        List<BlockState> validBlocks = new ArrayList<>();
-        for (Map.Entry<Block, List<BlockState>> entry : frameBlocksByType.entrySet()) {
+    public <T> List<T> computeValidFrameBlocks(HashMap<Block, List<T>> frameBlocksByType){
+        List<T> validBlocks = new ArrayList<>();
+        for (Map.Entry<Block, List<T>> entry : frameBlocksByType.entrySet()) {
             ItemStack itemStack = new ItemStack(entry.getKey().asItem(), 1);
             if(frameBlockIngredient.test(itemStack)){
                 validBlocks.addAll(entry.getValue());
