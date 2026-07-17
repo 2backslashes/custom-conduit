@@ -107,13 +107,14 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             } else if (i == 2) {
                 poseStack.mulPose(new Quaternionf().rotationZ((float) (Math.PI / 2)));
             }
+            poseStack.scale(2.5F, 2.5F, 2.5F);
 
             VertexConsumer vertexconsumer = (i == 1 ? VERTICAL_WIND_TEXTURE : WIND_TEXTURE).buffer(bufferSource, RenderType::entityCutoutNoCull);
             this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
-            poseStack.scale(0.875F, 0.875F, 0.875F);
+            poseStack.scale(2.0F, 2.0F, 2.0F);
             poseStack.mulPose(new Quaternionf().rotationXYZ((float) Math.PI, 0.0F, (float) Math.PI));
             this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();

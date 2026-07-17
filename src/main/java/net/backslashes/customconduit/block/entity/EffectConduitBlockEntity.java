@@ -122,11 +122,6 @@ public class EffectConduitBlockEntity extends BlockEntity {
             if (i % 100L == 0L) {
                 level.playSound(null, pos, ModSounds.CONDUIT_AMBIENT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
-
-//            if (i > blockEntity.nextAmbientSoundActivation) {
-//                blockEntity.nextAmbientSoundActivation = i + 60L + (long)level.getRandom().nextInt(40);
-//                level.playSound(null, pos, ModSounds.CONDUIT_AMBIENT_SHORT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-//            }
         }
     }
 
