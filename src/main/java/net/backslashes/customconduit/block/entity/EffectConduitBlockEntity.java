@@ -3,8 +3,6 @@ package net.backslashes.customconduit.block.entity;//
 // (powered by FernFlower decompiler)
 //
 
-import com.google.common.collect.Lists;
-
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -18,16 +16,17 @@ import net.backslashes.customconduit.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Containers;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -35,9 +34,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class EffectConduitBlockEntity extends BlockEntity {
+    public static int FUEL_SLOT = 0;
     public record ActiveEffect(
             Holder<MobEffect> effect,
             int amplifier,
@@ -55,11 +56,46 @@ public class EffectConduitBlockEntity extends BlockEntity {
     private float activeRotation;
     private boolean isActive;
     private long nextAmbientSoundActivation;
+
+    EffectConduitRecipe selectedRecipe = null;
     List<ActiveEffect> activeEffects = new ArrayList<>();
     List<ActiveRecipe> activeRecipes = new ArrayList<>();
 
+    public final ItemStackHandler inventory = new ItemStackHandler(1) {
+        @Override
+        protected void onContentsChanged(int slot){
+            setChanged();
+            if(level == null || level.isClientSide){
+                return;
+            }
+
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+        }
+    };
+
     public EffectConduitBlockEntity(BlockPos pos, BlockState blockState) {
         super(ModBlocks.EFFECT_CONDUIT_BLOCK_ENTITY.get(), pos, blockState);
+    }
+
+    public void drops() {
+        SimpleContainer inv = new SimpleContainer(inventory.getSlots());
+        for(int i=0; i<inventory.getSlots(); ++i){
+            inv.setItem(i, inventory.getStackInSlot(i));
+        }
+        Containers.dropContents(this.level, this.worldPosition, inv);
+    }
+
+    private static String INVENTORY_TAG = "inventory";
+    @Override
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
+    }
+
+    @Override
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
+        super.loadAdditional(tag, registries);
+        inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -142,6 +178,14 @@ public class EffectConduitBlockEntity extends BlockEntity {
 
     private static void computeActiveEffects(Level level, BlockPos center, EffectConduitBlockEntity blockEntity) {
         HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
+        blockEntity.activeEffects.clear();
+        blockEntity.activeRecipes.clear();
+        blockEntity.color = 0xFFFFFF;
+
+        if(blockEntity.selectedRecipe == null){
+            return;
+        }
+
         iterFrameCandidates(center, (pos) -> {
             Block block = level.getBlockState(pos).getBlock();
             List<BlockPos> blocksOfType = frameBlocksByType.get(block);
@@ -169,8 +213,6 @@ public class EffectConduitBlockEntity extends BlockEntity {
         float b = colorTotalInfluence;
 
         // Gather active effects.
-        blockEntity.activeEffects.clear();
-        blockEntity.activeRecipes.clear();
         List<RecipeHolder<EffectConduitRecipe>> allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
         for (RecipeHolder<EffectConduitRecipe> recipeHolder : allRecipes) {
             EffectConduitRecipe recipe = recipeHolder.value();
