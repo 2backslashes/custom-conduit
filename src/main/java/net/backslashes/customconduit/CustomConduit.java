@@ -3,9 +3,12 @@ import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.ModParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
+import net.backslashes.customconduit.screen.ModMenuTypes;
+import net.backslashes.customconduit.screen.custom.ConduitScreen;
 import net.backslashes.customconduit.sound.ModSounds;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.slf4j.Logger;
 
@@ -38,6 +41,7 @@ public class CustomConduit {
         ModRecipes.register(modEventBus);
         ModParticles.register(modEventBus);
         ModSounds.register(modEventBus);
+        ModMenuTypes.register(modEventBus);
 
         NeoForge.EVENT_BUS.register(this);
 
@@ -60,6 +64,11 @@ public class CustomConduit {
         @SubscribeEvent
         public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
             event.registerSpriteSet(ModParticles.EFFECT_CONDUIT_PARTICLES.get(), EffectConduitParticles.Provider::new);
+        }
+
+        @SubscribeEvent
+        public static void registerScreens(RegisterMenuScreensEvent event){
+            event.register(ModMenuTypes.CONDUIT_MENU.get(), ConduitScreen::new);
         }
     }
 }

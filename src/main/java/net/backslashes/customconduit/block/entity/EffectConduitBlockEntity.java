@@ -12,20 +12,25 @@ import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.backslashes.customconduit.recipe.ModRecipes;
+import net.backslashes.customconduit.screen.custom.ConduitMenu;
 import net.backslashes.customconduit.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
@@ -36,9 +41,18 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class EffectConduitBlockEntity extends BlockEntity {
-    public static final int FUEL_SLOT = 0;
+public class EffectConduitBlockEntity extends BlockEntity implements MenuProvider {
+    @Override
+    public Component getDisplayName() {
+        return Component.literal("Conduit");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
+        return new ConduitMenu(i, inventory, this);
+    }
 
     public record ActiveEffect(
             Holder<MobEffect> effect,
@@ -62,6 +76,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
     List<ActiveEffect> activeEffects = new ArrayList<>();
     List<ActiveRecipe> activeRecipes = new ArrayList<>();
 
+    public static final int FUEL_SLOT = 0;
     public final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot){

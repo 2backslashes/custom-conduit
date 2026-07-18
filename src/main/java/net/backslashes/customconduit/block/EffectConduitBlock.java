@@ -6,10 +6,13 @@ import javax.annotation.Nullable;
 import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -91,10 +94,13 @@ public class EffectConduitBlock extends BaseEntityBlock {
             @NotNull BlockHitResult hitResult
     ) {
         if(level.getBlockEntity(pos) instanceof EffectConduitBlockEntity entity){
-            ItemStack existing = entity.inventory.extractItem(FUEL_SLOT, 64, false);
-            level.playSound(player, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0f, 1.0f);
-            player.setItemInHand(hand, existing);
-            entity.inventory.insertItem(FUEL_SLOT, stack, false);
+            if(player instanceof ServerPlayer serverPlayer){
+                serverPlayer.openMenu(new SimpleMenuProvider(entity, Component.literal("Conduit")), pos);
+            }
+//            ItemStack existing = entity.inventory.extractItem(FUEL_SLOT, 64, false);
+//            level.playSound(player, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0f, 1.0f);
+//            player.setItemInHand(hand, existing);
+//            entity.inventory.insertItem(FUEL_SLOT, stack, false);
         }
         return ItemInteractionResult.SUCCESS;
     }
