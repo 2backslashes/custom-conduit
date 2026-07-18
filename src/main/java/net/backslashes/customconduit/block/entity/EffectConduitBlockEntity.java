@@ -38,7 +38,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 
 public class EffectConduitBlockEntity extends BlockEntity {
-    public static int FUEL_SLOT = 0;
+    public static final int FUEL_SLOT = 0;
+
     public record ActiveEffect(
             Holder<MobEffect> effect,
             int amplifier,
@@ -78,6 +79,10 @@ public class EffectConduitBlockEntity extends BlockEntity {
     }
 
     public void drops() {
+        if(this.level == null){
+            return;
+        }
+
         SimpleContainer inv = new SimpleContainer(inventory.getSlots());
         for(int i=0; i<inventory.getSlots(); ++i){
             inv.setItem(i, inventory.getStackInSlot(i));
@@ -85,7 +90,7 @@ public class EffectConduitBlockEntity extends BlockEntity {
         Containers.dropContents(this.level, this.worldPosition, inv);
     }
 
-    private static String INVENTORY_TAG = "inventory";
+    private static final String INVENTORY_TAG = "inventory";
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
@@ -114,7 +119,6 @@ public class EffectConduitBlockEntity extends BlockEntity {
             blockEntity.isActive = !blockEntity.activeEffects.isEmpty();
         }
 
-        // TODO block list
         animationTick(level, pos, blockEntity);
         if (blockEntity.isActive) {
             ++blockEntity.activeRotation;

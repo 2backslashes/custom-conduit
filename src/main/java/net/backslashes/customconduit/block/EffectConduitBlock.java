@@ -44,10 +44,6 @@ public class EffectConduitBlock extends BaseEntityBlock {
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-    }
-
-    @Override
     public BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
         return new EffectConduitBlockEntity(pos, state);
     }
@@ -61,11 +57,6 @@ public class EffectConduitBlock extends BaseEntityBlock {
     @Override
     protected @NotNull RenderShape getRenderShape(@NotNull BlockState state) {
         return RenderShape.ENTITYBLOCK_ANIMATED;
-    }
-
-    @Override
-    protected @NotNull BlockState updateShape(BlockState state, @NotNull Direction facing, @NotNull BlockState facingState, @NotNull LevelAccessor level, @NotNull BlockPos currentPos, @NotNull BlockPos facingPos) {
-        return super.updateShape(state, facing, facingState, level, currentPos, facingPos);
     }
 
     @Override
