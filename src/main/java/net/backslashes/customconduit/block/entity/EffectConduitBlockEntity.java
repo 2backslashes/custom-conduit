@@ -153,7 +153,11 @@ public class EffectConduitBlockEntity extends BlockEntity {
         });
 
         // Early exit if the frame hasn't actually changed composition.
-        int newFrameHash = frameBlocksByType.hashCode();
+        int newFrameHash = 0;
+        for(Map.Entry<Block, List<BlockPos>> entry : frameBlocksByType.entrySet()){
+            // Compute a special hash that only cares about the number of blocks, not their positions.
+            newFrameHash += entry.getKey().hashCode() + entry.getValue().size();
+        }
         if(newFrameHash == blockEntity.lastFrameHash){
             return;
         }
