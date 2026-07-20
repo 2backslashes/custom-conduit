@@ -3,31 +3,47 @@ package net.backslashes.customconduit.screen.custom;
 import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.backslashes.customconduit.screen.ModMenuTypes;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
+import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntity.DATA_SELECTED_RECIPE;
+
 public class ConduitMenu extends AbstractContainerMenu {
-    public final EffectConduitBlockEntity blockEntity;
+    public final BlockPos pos;
+    public final ContainerData conduitData;
     private final Level level;
     private final int fuelSlot;
 
-    public ConduitMenu(int containerId, Inventory inv, EffectConduitBlockEntity blockEntity){
+    public ConduitMenu(int containerId, Inventory inv, BlockPos pos, ItemStackHandler containerInv, ContainerData conduitData){
         super(ModMenuTypes.CONDUIT_MENU.get(), containerId);
-        this.blockEntity = blockEntity;
+        this.conduitData = conduitData;
+        this.pos = pos;
+
         this.level = inv.player.level();
+        this.fuelSlot = this.slots.size();
 
         addPlayerInventory(inv);
 
-        this.fuelSlot = this.slots.size();
-        this.addSlot(new SlotItemHandler(this.blockEntity.inventory, 0, 122, 35));
+        this.addSlot(new SlotItemHandler(containerInv, 0, 122, 35));
+        this.addDataSlots(conduitData);
+    }
+
+    @Override
+    public boolean clickMenuButton(@NotNull Player player, int id) {
+        this.conduitData.set(DATA_SELECTED_RECIPE, id);
+        this.broadcastChanges();
+        return super.clickMenuButton(player, id);
     }
 
     private void addPlayerInventory(Inventory playerInventory){
@@ -46,6 +62,10 @@ public class ConduitMenu extends AbstractContainerMenu {
         this(containerId, inv, (EffectConduitBlockEntity) inv.player.level().getBlockEntity(buf.readBlockPos()));
     }
 
+    public ConduitMenu(int containerId, Inventory inv, EffectConduitBlockEntity blockEntity) {
+        this(containerId, inv, blockEntity.getBlockPos(), blockEntity.inventory, blockEntity.dataAccess);
+    }
+
 
     @Override
     public @NotNull ItemStack quickMoveStack(@NotNull Player player, int i) {
@@ -55,6 +75,6 @@ public class ConduitMenu extends AbstractContainerMenu {
 
     @Override
     public boolean stillValid(@NotNull Player player) {
-        return stillValid(ContainerLevelAccess.create(level, blockEntity.getBlockPos()), player, ModBlocks.EFFECT_CONDUIT.get());
+        return stillValid(ContainerLevelAccess.create(level, this.pos), player, ModBlocks.EFFECT_CONDUIT.get());
     }
 }

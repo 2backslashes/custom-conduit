@@ -62,7 +62,7 @@ public class MathUtil {
         }
 
         public int toHexArgb(){
-            return ((int)(r * 255.0f) << 16) | ((int)(g * 255.0f) << 8) | (int)(b * 255.0f);
+            return 0xFF000000 | ((int)(r * 255.0f) << 16) | ((int)(g * 255.0f) << 8) | (int)(b * 255.0f);
         }
     }
 

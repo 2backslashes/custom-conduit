@@ -52,19 +52,36 @@ public class ModRecipes {
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
-                    16,
-                    42,
-                    Ingredient.of(Items.GOLD_BLOCK),
-                    List.of(
-                        new EffectConduitRecipe.ConduitEffect(
-                            MobEffects.GLOWING,
-                            0,
-                            16.0,
-                            64.0
-                        )
-                    ),
-                    new MathUtil.RgbColor(1.0f, 0.8f, 0.3f)
-                )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_flight_from_iron"));
+                "Example 1",
+                16,
+                42,
+                Ingredient.of(Items.GOLD_BLOCK),
+                List.of(
+                    new EffectConduitRecipe.ConduitEffect(
+                        MobEffects.GLOWING,
+                        0,
+                        16.0,
+                        64.0
+                    )
+                ),
+                new MathUtil.RgbColor(1.0f, 0.8f, 0.3f)
+            )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_1"));
+
+            new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+                "Example 2",
+                16,
+                42,
+                Ingredient.of(Items.IRON_BLOCK),
+                List.of(
+                    new EffectConduitRecipe.ConduitEffect(
+                        MobEffects.MOVEMENT_SPEED,
+                        1,
+                        16.0,
+                        64.0
+                    )
+                ),
+                new MathUtil.RgbColor(0.4f, 0.8f, 1.0f)
+            )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_2"));
         }
     }
 

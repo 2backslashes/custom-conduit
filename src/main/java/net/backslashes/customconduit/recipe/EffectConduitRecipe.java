@@ -8,6 +8,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 public record EffectConduitRecipe(
+        String displayName,
         int minFrameBlockCount,
         int maxFrameBlockCount,
         Ingredient frameBlockIngredient,
@@ -118,6 +121,7 @@ public record EffectConduitRecipe(
 
     public static class EffectConduitRecipeSerializer implements RecipeSerializer<EffectConduitRecipe> {
         public static final MapCodec<EffectConduitRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+                Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
                 Codec.INT.optionalFieldOf("minFrameBlockCount", 16).forGetter(EffectConduitRecipe::minFrameBlockCount),
                 Codec.INT.optionalFieldOf("maxFrameBlockCount", 42).forGetter(EffectConduitRecipe::maxFrameBlockCount),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
@@ -137,7 +141,10 @@ public record EffectConduitRecipe(
             return STREAM_CODEC;
         }
 
+        public static final int DISPLAY_NAME_MAX_LENGTH = 64;
+
         private static EffectConduitRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+            String displayName = ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).decode(buffer);
             int minFrameBlockCount = buffer.readByte();
             int maxFrameBlockCount = buffer.readByte();
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
@@ -149,6 +156,7 @@ public record EffectConduitRecipe(
             }
             MathUtil.RgbColor color = MathUtil.RgbColor.STREAM_CODEC.decode(buffer);
             return new EffectConduitRecipe(
+                    displayName,
                     minFrameBlockCount,
                     maxFrameBlockCount,
                     frameBlockIngredient,
@@ -158,6 +166,7 @@ public record EffectConduitRecipe(
         }
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
+            ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).encode(buffer, recipe.displayName);
             buffer.writeByte(recipe.minFrameBlockCount);
             buffer.writeByte(recipe.maxFrameBlockCount);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);

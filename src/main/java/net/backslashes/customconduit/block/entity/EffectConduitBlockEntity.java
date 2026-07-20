@@ -20,6 +20,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -31,11 +32,11 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -72,9 +73,16 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     private boolean isActive;
     private long nextAmbientSoundActivation;
 
-    EffectConduitRecipe selectedRecipe = null;
-    List<ActiveEffect> activeEffects = new ArrayList<>();
-    List<ActiveRecipe> activeRecipes = new ArrayList<>();
+    private ResourceLocation pendingSelectedRecipe = null;
+    private SelectedRecipe selectedRecipe = null;
+    private final List<ActiveEffect> activeEffects = new ArrayList<>();
+    private final List<ActiveRecipe> activeRecipes = new ArrayList<>();
+
+    public record SelectedRecipe(
+            int index,
+            ResourceLocation id,
+            EffectConduitRecipe recipe
+    ){}
 
     public static final int FUEL_SLOT = 0;
     public final ItemStackHandler inventory = new ItemStackHandler(1) {
@@ -93,6 +101,56 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         super(ModBlocks.EFFECT_CONDUIT_BLOCK_ENTITY.get(), pos, blockState);
     }
 
+    public static final int DATA_SELECTED_RECIPE = 0;
+
+    public final ContainerData dataAccess = new ContainerData() {
+        @Override
+        public int get(int i) {
+            return switch (i) {
+                case DATA_SELECTED_RECIPE -> EffectConduitBlockEntity.this.selectedRecipe.index;
+                default -> 0;
+            };
+        }
+
+        @Override
+        public void set(int i, int value) {
+            switch(i){
+                case DATA_SELECTED_RECIPE:
+                   EffectConduitBlockEntity.this.setSelectedRecipe(value);
+                   break;
+            }
+        }
+
+        @Override
+        public int getCount() {
+            return 1;
+        }
+    };
+
+    public void setSelectedRecipe(int recipeIndex){
+        if(level == null){
+            return;
+        }
+
+        var allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
+        if(recipeIndex >= allRecipes.size() || recipeIndex < 0){
+            System.err.println("Player selected invalid conduit recipe with index " + recipeIndex + "!");
+            return;
+        }
+        var recipe = allRecipes.get(recipeIndex);
+        this.selectedRecipe = new SelectedRecipe(
+                recipeIndex,
+                recipe.id(),
+                recipe.value()
+        );
+
+        setChanged();
+    }
+
+    public SelectedRecipe getSelectedRecipe(){
+        return this.selectedRecipe;
+    }
+
     public void drops() {
         if(this.level == null){
             return;
@@ -106,16 +164,30 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     }
 
     private static final String INVENTORY_TAG = "inventory";
+    private static final String SELECTED_RECIPE_ID = "selected_recipe_id";
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
         tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
+        if(selectedRecipe != null){
+            tag.putString(SELECTED_RECIPE_ID, selectedRecipe.id().toString());
+        }
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
+        if(tag.contains(SELECTED_RECIPE_ID)){
+            String[] parts = tag.getString(SELECTED_RECIPE_ID).split(":");
+            if(parts.length == 2){
+                this.pendingSelectedRecipe = ResourceLocation.fromNamespaceAndPath(
+                    parts[0],
+                    parts[1]
+                );
+                this.selectedRecipe = null;
+            }
+        }
     }
 
     public ClientboundBlockEntityDataPacket getUpdatePacket() {
@@ -126,8 +198,33 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         return this.saveCustomOnly(registries);
     }
 
+    private void loadPendingSelectedRecipe(){
+        if(pendingSelectedRecipe == null){
+            return;
+        }
+
+        if(level == null){
+            return;
+        }
+
+        var allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
+        for(int i=0; i<allRecipes.size(); ++i){
+            var recipe = allRecipes.get(i);
+            if(recipe.id().equals(pendingSelectedRecipe)) {
+                selectedRecipe = new SelectedRecipe(
+                        i,
+                        recipe.id(),
+                        recipe.value()
+                );
+                break;
+            }
+        }
+        pendingSelectedRecipe = null;
+    }
+
     public static void clientTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
         ++blockEntity.tickCount;
+        blockEntity.loadPendingSelectedRecipe();
         long i = level.getGameTime();
         if (i % 40L == 0L) {
             computeActiveEffects(level, pos, blockEntity);
@@ -152,6 +249,8 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     public static void serverTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
         ++blockEntity.tickCount;
         long i = level.getGameTime();
+
+        blockEntity.loadPendingSelectedRecipe();
 
         if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
             // Compute active effects.
@@ -196,15 +295,14 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     }
 
     private static void computeActiveEffects(Level level, BlockPos center, EffectConduitBlockEntity blockEntity) {
-        HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
-        blockEntity.activeEffects.clear();
-        blockEntity.activeRecipes.clear();
-        blockEntity.color = 0xFFFFFF;
-
         if(blockEntity.selectedRecipe == null){
+            blockEntity.activeEffects.clear();
+            blockEntity.activeRecipes.clear();
+            blockEntity.color = 0xFFFFFF;
             return;
         }
 
+        HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
         iterFrameCandidates(center, (pos) -> {
             Block block = level.getBlockState(pos).getBlock();
             List<BlockPos> blocksOfType = frameBlocksByType.get(block);
@@ -216,7 +314,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         });
 
         // Early exit if the frame hasn't actually changed composition.
-        int newFrameHash = 0;
+        int newFrameHash = blockEntity.selectedRecipe.hashCode();
         for(Map.Entry<Block, List<BlockPos>> entry : frameBlocksByType.entrySet()){
             // Compute a special hash that only cares about the number of blocks, not their positions.
             newFrameHash += entry.getKey().hashCode() + entry.getValue().size();
@@ -226,42 +324,43 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
         blockEntity.lastFrameHash = newFrameHash;
 
+        blockEntity.activeEffects.clear();
+        blockEntity.activeRecipes.clear();
+        blockEntity.color = 0xFFFFFF;
+
         float colorTotalInfluence = 0.2f;
         float r = colorTotalInfluence;
         float g = colorTotalInfluence;
         float b = colorTotalInfluence;
 
         // Gather active effects.
-        List<RecipeHolder<EffectConduitRecipe>> allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
-        for (RecipeHolder<EffectConduitRecipe> recipeHolder : allRecipes) {
-            EffectConduitRecipe recipe = recipeHolder.value();
-            List<BlockPos> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
+        EffectConduitRecipe recipe = blockEntity.selectedRecipe.recipe();
+        List<BlockPos> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
 
-            if(validFrameBlocks.size() < recipe.minFrameBlockCount()){
-                continue;
-            }
+        if(validFrameBlocks.size() < recipe.minFrameBlockCount()){
+            return;
+        }
 
-            double powerFactor = recipe.computePowerFactor(validFrameBlocks.size());
+        double powerFactor = recipe.computePowerFactor(validFrameBlocks.size());
 
-            // Accumulate color;
-            float colorInfluence = (float) (powerFactor * 0.5 + 0.5);
-            r += recipe.color().r() * colorInfluence;
-            g += recipe.color().g() * colorInfluence;
-            b += recipe.color().b() * colorInfluence;
-            colorTotalInfluence += colorInfluence;
+        // Accumulate color;
+        float colorInfluence = (float) (powerFactor * 0.5 + 0.5);
+        r += recipe.color().r() * colorInfluence;
+        g += recipe.color().g() * colorInfluence;
+        b += recipe.color().b() * colorInfluence;
+        colorTotalInfluence += colorInfluence;
 
-            blockEntity.activeRecipes.add(new ActiveRecipe(recipe, validFrameBlocks));
+        blockEntity.activeRecipes.add(new ActiveRecipe(recipe, validFrameBlocks));
 
-            // Accumulate effects.
-            List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
-            for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
-                double range = effect.computeEffectRange(powerFactor);
-                blockEntity.activeEffects.add(new ActiveEffect(
-                        effect.effect(),
-                        effect.amplifier(),
-                        range
-                ));
-            }
+        // Accumulate effects.
+        List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
+        for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
+            double range = effect.computeEffectRange(powerFactor);
+            blockEntity.activeEffects.add(new ActiveEffect(
+                    effect.effect(),
+                    effect.amplifier(),
+                    range
+            ));
         }
 
         blockEntity.color = new MathUtil.RgbColor(r / colorTotalInfluence, g / colorTotalInfluence, b / colorTotalInfluence).toHexArgb();
