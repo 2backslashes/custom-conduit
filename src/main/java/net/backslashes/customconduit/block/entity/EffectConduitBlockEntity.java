@@ -102,12 +102,14 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     }
 
     public static final int DATA_SELECTED_RECIPE = 0;
+    public static final int DATA_FRAME_PROGRESS = 1;
 
     public final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int i) {
             return switch (i) {
-                case DATA_SELECTED_RECIPE -> EffectConduitBlockEntity.this.selectedRecipe.index;
+                case DATA_SELECTED_RECIPE -> EffectConduitBlockEntity.this.selectedRecipe == null ? -1 : EffectConduitBlockEntity.this.selectedRecipe.index;
+                case DATA_FRAME_PROGRESS -> EffectConduitBlockEntity.this.computeFrameProgressLevel();
                 default -> 0;
             };
         }
@@ -126,6 +128,19 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 1;
         }
     };
+
+    public int computeFrameProgressLevel(){
+        if(activeRecipes.isEmpty()){
+            return 0;
+        }
+
+        double maxFactor = 0.0;
+        for(var recipe : activeRecipes){
+            double factor = recipe.recipe.computePowerFactor(recipe.activeFrameBlocks.size());
+            maxFactor = Math.max(maxFactor, factor);
+        }
+        return 1 + (int) (maxFactor * 3);
+    }
 
     public void setSelectedRecipe(int recipeIndex){
         if(level == null){
@@ -317,11 +332,12 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         int newFrameHash = blockEntity.selectedRecipe.hashCode();
         for(Map.Entry<Block, List<BlockPos>> entry : frameBlocksByType.entrySet()){
             // Compute a special hash that only cares about the number of blocks, not their positions.
-            newFrameHash += entry.getKey().hashCode() + entry.getValue().size();
+            newFrameHash += entry.getKey().hashCode() * entry.getValue().size();
         }
         if(newFrameHash == blockEntity.lastFrameHash){
             return;
         }
+
         blockEntity.lastFrameHash = newFrameHash;
 
         blockEntity.activeEffects.clear();
@@ -338,6 +354,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         List<BlockPos> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
 
         if(validFrameBlocks.size() < recipe.minFrameBlockCount()){
+            blockEntity.setChanged();
             return;
         }
 
@@ -367,6 +384,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
 
         // Sort effects by range, high-to-low.
         blockEntity.activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
+        blockEntity.setChanged();
     }
 
     private static void applyEffects(Level level, BlockPos pos, List<ActiveEffect> activeEffects) {

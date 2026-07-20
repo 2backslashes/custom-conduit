@@ -35,7 +35,7 @@ public class ConduitMenu extends AbstractContainerMenu {
 
         addPlayerInventory(inv);
 
-        this.addSlot(new SlotItemHandler(containerInv, 0, 122, 35));
+        this.addSlot(new SlotItemHandler(containerInv, 0, 120, 34));
         this.addDataSlots(conduitData);
     }
 

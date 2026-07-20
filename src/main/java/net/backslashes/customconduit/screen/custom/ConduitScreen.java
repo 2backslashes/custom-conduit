@@ -19,10 +19,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntity.DATA_FRAME_PROGRESS;
 import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntity.DATA_SELECTED_RECIPE;
 
 public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     private static final ResourceLocation BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_bg.png");
+    private static final ResourceLocation CORNER_TEXTURE_BOTTOM_LEFT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_bottom_left.png");
+    private static final ResourceLocation CORNER_TEXTURE_BOTTOM_RIGHT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_bottom_right.png");
+    private static final ResourceLocation CORNER_TEXTURE_TOP_LEFT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_top_left.png");
+    private static final ResourceLocation CORNER_TEXTURE_TOP_RIGHT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_top_right.png");
     private RecipesMenu recipesMenu;
 
     public ConduitScreen(ConduitMenu menu, Inventory playerInventory, Component title) {
@@ -58,6 +63,21 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
         int x = (width - imageWidth)/2;
         int y = (height - imageHeight)/2;
         guiGraphics.blit(BG_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+
+        int frameLevel = this.menu.conduitData.get(DATA_FRAME_PROGRESS);
+        if(frameLevel >= 1){
+            RenderSystem.setShaderTexture(0, CORNER_TEXTURE_BOTTOM_LEFT);
+            guiGraphics.blit(CORNER_TEXTURE_BOTTOM_LEFT, x + 93, y + 45, 0.0f, 0.0f, 35, 35, 35, 35);
+        }
+        if(frameLevel >= 2){
+            guiGraphics.blit(CORNER_TEXTURE_BOTTOM_RIGHT, x + 131, y + 45, 0.0f, 0.0f, 35, 35, 35, 35);
+        }
+        if(frameLevel >= 3){
+            guiGraphics.blit(CORNER_TEXTURE_TOP_LEFT, x + 93, y + 7, 0.0f, 0.0f, 35, 35, 35, 35);
+        }
+        if(frameLevel >= 4){
+            guiGraphics.blit(CORNER_TEXTURE_TOP_RIGHT, x + 131, y + 7, 0.0f, 0.0f, 35, 35, 35, 35);
+        }
     }
 
     private static class RecipesMenu extends ScrollPanel {
