@@ -35,7 +35,7 @@ import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntit
 
 public class EffectConduitBlock extends BaseEntityBlock {
     public static final MapCodec<EffectConduitBlock> CODEC = simpleCodec(EffectConduitBlock::new);
-    protected static final VoxelShape SHAPE = Block.box(5.0F, 5.0F, 5.0F, 11.0F, 11.0, 11.0F);
+    protected static final VoxelShape SHAPE = Block.box(2.0F, 2.0F, 2.0F, 14.0F, 14.0, 14.0F);
 
     @Override
     public @NotNull MapCodec<EffectConduitBlock> codec() {

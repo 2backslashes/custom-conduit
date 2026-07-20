@@ -31,9 +31,6 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
     public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/base"));
     public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/cage"));
     public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/wind"));
-    public static final Material VERTICAL_WIND_TEXTURE = new Material(
-            TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/wind_vertical")
-    );
     public static final Material EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
     private final ModelPart eye;
     private final ModelPart wind;
@@ -49,36 +46,6 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
         this.cage = context.bakeLayer(ModelLayers.CONDUIT_CAGE);
     }
 
-    public static LayerDefinition createEyeLayer() {
-        MeshDefinition meshdefinition = new MeshDefinition();
-        PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild(
-                "eye", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, 0.0F, 8.0F, 8.0F, 0.0F, new CubeDeformation(0.01F)), PartPose.ZERO
-        );
-        return LayerDefinition.create(meshdefinition, 16, 16);
-    }
-
-    public static LayerDefinition createWindLayer() {
-        MeshDefinition meshdefinition = new MeshDefinition();
-        PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild("wind", CubeListBuilder.create().texOffs(0, 0).addBox(-8.0F, -8.0F, -8.0F, 16.0F, 16.0F, 16.0F), PartPose.ZERO);
-        return LayerDefinition.create(meshdefinition, 64, 32);
-    }
-
-    public static LayerDefinition createShellLayer() {
-        MeshDefinition meshdefinition = new MeshDefinition();
-        PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild("shell", CubeListBuilder.create().texOffs(0, 0).addBox(-3.0F, -3.0F, -3.0F, 6.0F, 6.0F, 6.0F), PartPose.ZERO);
-        return LayerDefinition.create(meshdefinition, 32, 16);
-    }
-
-    public static LayerDefinition createCageLayer() {
-        MeshDefinition meshdefinition = new MeshDefinition();
-        PartDefinition partdefinition = meshdefinition.getRoot();
-        partdefinition.addOrReplaceChild("shell", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -4.0F, 8.0F, 8.0F, 8.0F), PartPose.ZERO);
-        return LayerDefinition.create(meshdefinition, 32, 16);
-    }
-
     public void render(EffectConduitBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         float f = (float)blockEntity.tickCount + partialTick;
         if (!blockEntity.isActive()) {
@@ -87,18 +54,23 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
             poseStack.mulPose(new Quaternionf().rotationY(f5 * (float) (Math.PI / 180.0)));
+            poseStack.scale(2.0f, 2.0f, 2.0f);
             this.shell.render(poseStack, vertexconsumer1, packedLight, packedOverlay);
             poseStack.popPose();
         } else {
+            // Cage.
             float f1 = blockEntity.getActiveRotation(partialTick) * (180.0F / (float)Math.PI);
-            float f2 = Mth.sin(f * 0.1F) / 2.0F + 0.5F;
-            f2 = f2 * f2 + f2;
             poseStack.pushPose();
-            poseStack.translate(0.5F, 0.3F + f2 * 0.2F, 0.5F);
+            float wobble = 0.01f;
+            float wobbleSpeed = 2.0f;
+            poseStack.translate(0.5F + Math.sin(f * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.3 * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.7 * wobbleSpeed) * wobble);
+            poseStack.scale(2.0f, 2.0f, 2.0f);
             Vector3f vector3f = new Vector3f(0.5F, 1.0F, 0.5F).normalize();
             poseStack.mulPose(new Quaternionf().rotationAxis(f1 * (float) (Math.PI / 180.0), vector3f));
             this.cage.render(poseStack, ACTIVE_SHELL_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull), packedLight, packedOverlay);
             poseStack.popPose();
+
+            // Wind 1.
             int i = blockEntity.tickCount / 66 % 3;
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
@@ -108,19 +80,22 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
                 poseStack.mulPose(new Quaternionf().rotationZ((float) (Math.PI / 2)));
             }
             poseStack.scale(2.5F, 2.5F, 2.5F);
-
-            VertexConsumer vertexconsumer = (i == 1 ? VERTICAL_WIND_TEXTURE : WIND_TEXTURE).buffer(bufferSource, RenderType::entityCutoutNoCull);
+            VertexConsumer vertexconsumer = WIND_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull);
             this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();
+
+            // Wind 2.
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
             poseStack.scale(2.0F, 2.0F, 2.0F);
             poseStack.mulPose(new Quaternionf().rotationXYZ((float) Math.PI, 0.0F, (float) Math.PI));
             this.wind.render(poseStack, vertexconsumer, packedLight, packedOverlay, blockEntity.color);
             poseStack.popPose();
+
+            // Eye.
             Camera camera = this.renderer.camera;
             poseStack.pushPose();
-            poseStack.translate(0.5F, 0.3F + f2 * 0.2F, 0.5F);
+            poseStack.translate(0.5F, 0.5F + Math.sin(f * 0.1) * 0.1, 0.5F);
             poseStack.scale(0.5F, 0.5F, 0.5F);
             float f3 = -camera.getYRot();
             poseStack.mulPose(new Quaternionf().rotationYXZ(f3 * (float) (Math.PI / 180.0), camera.getXRot() * (float) (Math.PI / 180.0), (float) Math.PI));
