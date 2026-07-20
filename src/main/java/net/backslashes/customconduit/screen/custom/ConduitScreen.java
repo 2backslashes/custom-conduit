@@ -64,6 +64,8 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
         int y = (height - imageHeight)/2;
         guiGraphics.blit(BG_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
 
+//        guiGraphics.drawCenteredString(this.font, , x+128, y+64);
+
         int frameLevel = this.menu.conduitData.get(DATA_FRAME_PROGRESS);
         if(frameLevel >= 1){
             RenderSystem.setShaderTexture(0, CORNER_TEXTURE_BOTTOM_LEFT);

@@ -5,6 +5,8 @@ import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.backslashes.customconduit.screen.ModMenuTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -35,7 +37,7 @@ public class ConduitMenu extends AbstractContainerMenu {
 
         addPlayerInventory(inv);
 
-        this.addSlot(new SlotItemHandler(containerInv, 0, 120, 34));
+        this.addSlot(new SlotItemHandler(containerInv, 0, 121, 35));
         this.addDataSlots(conduitData);
     }
 
@@ -43,6 +45,7 @@ public class ConduitMenu extends AbstractContainerMenu {
     public boolean clickMenuButton(@NotNull Player player, int id) {
         this.conduitData.set(DATA_SELECTED_RECIPE, id);
         this.broadcastChanges();
+        level.playSound(null, player.blockPosition(), SoundEvents.DISPENSER_DISPENSE, SoundSource.BLOCKS, 1.0F, 1.0f);
         return super.clickMenuButton(player, id);
     }
 

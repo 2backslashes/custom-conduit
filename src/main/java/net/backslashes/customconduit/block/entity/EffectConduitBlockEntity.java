@@ -129,6 +129,8 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     };
 
+
+
     public int computeFrameProgressLevel(){
         if(activeRecipes.isEmpty()){
             return 0;
