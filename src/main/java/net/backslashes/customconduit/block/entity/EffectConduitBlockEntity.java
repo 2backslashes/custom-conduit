@@ -100,6 +100,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     public static final int DATA_FUEL_TIMER_MAX = 2;
     public static final int DATA_FUEL_REMAINING_TICKS = 3;
 
+    public int getActiveLevel(){
+        return activeLevel;
+    }
+
     public final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int i) {
@@ -111,7 +115,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                     return self.activeLevel;
                 case DATA_FUEL_TIMER_MAX:
                     if (!self.requiresFuel()) {
-                        return 0;
+                        return -1;
                     }
                     return self.selectedRecipe.recipe.fuelBurnTime();
                 case DATA_FUEL_REMAINING_TICKS:
@@ -232,11 +236,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         for(int i=0; i<allRecipes.size(); ++i){
             var recipe = allRecipes.get(i);
             if(recipe.id().equals(pendingSelectedRecipe)) {
-                selectedRecipe = new SelectedRecipe(
-                        i,
-                        recipe.id(),
-                        recipe.value()
-                );
+                setSelectedRecipe(i);
                 break;
             }
         }
@@ -321,7 +321,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             ItemStack fuelItem = inventory.getStackInSlot(INV_SLOT_FUEL);
             if(!fuelItem.isEmpty() && selectedRecipe.recipe.fuelIngredient().test(fuelItem)){
                 fuelItem.setCount(fuelItem.getCount() - 1);
-                inventory.setStackInSlot(INV_SLOT_FUEL, fuelItem);
                 fuelRemainingTicks = selectedRecipe.recipe.fuelBurnTime();
             }
         }
