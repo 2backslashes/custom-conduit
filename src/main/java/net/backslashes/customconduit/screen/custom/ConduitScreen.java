@@ -30,8 +30,6 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     private static final ResourceLocation FUEL_TEXTURE_EMPTY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_empty.png");
     private static final ResourceLocation FUEL_TEXTURE_FULL = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_full.png");
 
-    private RecipesMenu recipesMenu;
-
     public ConduitScreen(ConduitMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
     }
@@ -39,16 +37,16 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     @Override
     protected void init() {
         super.init();
-        this.recipesMenu = new RecipesMenu(
+        RecipesMenu recipesMenu = new RecipesMenu(
                 this,
                 this.minecraft,
                 79,
                 76,
-                (height - imageHeight)/2 + 5,
-                (width - imageWidth)/2 + 8
+                (height - imageHeight) / 2 + 5,
+                (width - imageWidth) / 2 + 8
         );
 
-        this.addRenderableWidget(this.recipesMenu);
+        this.addRenderableWidget(recipesMenu);
     }
 
     @Override
@@ -89,7 +87,8 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
 
             int fuelRemaining = this.menu.conduitData.get(DATA_FUEL_REMAINING_TICKS);
             if(fuelRemaining > 0){
-                guiGraphics.blit(FUEL_TEXTURE_FULL, x+122, y+14, 0.0f, (float)fuelRemaining / fuelMax, 15, 15, 15, 15);
+                int progressOffset = (int)((1.0 - (float)fuelRemaining / fuelMax) * 15);
+                guiGraphics.blit(FUEL_TEXTURE_FULL, x+122, y+14+progressOffset, 0.0f, progressOffset, 15, 15-progressOffset, 15, 15);
             }
         }
     }

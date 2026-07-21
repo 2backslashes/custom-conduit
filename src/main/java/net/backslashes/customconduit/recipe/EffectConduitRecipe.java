@@ -81,19 +81,18 @@ public record EffectConduitRecipe(
         return false;
     }
 
-    public <T> List<T> computeValidFrameBlocks(HashMap<Block, List<T>> frameBlocksByType){
-        List<T> validBlocks = new ArrayList<>();
+    public <T> void computeValidFrameBlocks(HashMap<Block, List<T>> frameBlocksByType, List<T> outFrameBlocks){
+        outFrameBlocks.clear();
         for (Map.Entry<Block, List<T>> entry : frameBlocksByType.entrySet()) {
             ItemStack itemStack = new ItemStack(entry.getKey().asItem(), 1);
             if(frameBlockIngredient.test(itemStack)){
-                validBlocks.addAll(entry.getValue());
+                outFrameBlocks.addAll(entry.getValue());
             }
         }
-        return validBlocks;
     }
 
     public double computePowerFactor(int validFrameBlockCount){
-        return Double.min(1.0, (validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount));
+        return Math.clamp((validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount), 0.0f, 1.0f);
     }
 
     @Override

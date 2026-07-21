@@ -56,7 +56,7 @@ public class ModRecipes {
                 "Example 1",
                 16,
                 42,
-                600,
+                200,
                 Ingredient.of(ItemTags.COALS),
                 Ingredient.of(Items.GOLD_BLOCK),
                 List.of(

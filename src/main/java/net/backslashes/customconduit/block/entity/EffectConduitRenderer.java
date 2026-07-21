@@ -6,12 +6,6 @@ import net.backslashes.customconduit.CustomConduit;
 import net.minecraft.client.Camera;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.CubeDeformation;
-import net.minecraft.client.model.geom.builders.CubeListBuilder;
-import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.model.geom.builders.MeshDefinition;
-import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
@@ -20,7 +14,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
@@ -49,24 +42,22 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
     public void render(EffectConduitBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         float f = (float)blockEntity.tickCount + partialTick;
         if (!blockEntity.isActive()) {
-            float f5 = blockEntity.getActiveRotation(0.0F);
             VertexConsumer vertexconsumer1 = SHELL_TEXTURE.buffer(bufferSource, RenderType::entitySolid);
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
-            poseStack.mulPose(new Quaternionf().rotationY(f5 * (float) (Math.PI / 180.0)));
+            poseStack.mulPose(new Quaternionf().rotationY(f * (float) (Math.PI / 180.0)));
             poseStack.scale(2.0f, 2.0f, 2.0f);
             this.shell.render(poseStack, vertexconsumer1, packedLight, packedOverlay);
             poseStack.popPose();
         } else {
             // Cage.
-            float f1 = blockEntity.getActiveRotation(partialTick) * (180.0F / (float)Math.PI);
             poseStack.pushPose();
             float wobble = 0.01f;
             float wobbleSpeed = 2.0f;
             poseStack.translate(0.5F + Math.sin(f * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.3 * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.7 * wobbleSpeed) * wobble);
             poseStack.scale(2.0f, 2.0f, 2.0f);
             Vector3f vector3f = new Vector3f(0.5F, 1.0F, 0.5F).normalize();
-            poseStack.mulPose(new Quaternionf().rotationAxis(f1 * (float) (Math.PI / 180.0), vector3f));
+            poseStack.mulPose(new Quaternionf().rotationAxis(f * (float) (Math.PI / 180.0), vector3f));
             this.cage.render(poseStack, ACTIVE_SHELL_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull), packedLight, packedOverlay);
             poseStack.popPose();
 

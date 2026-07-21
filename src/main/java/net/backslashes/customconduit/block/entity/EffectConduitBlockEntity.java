@@ -6,7 +6,6 @@ package net.backslashes.customconduit.block.entity;//
 import java.util.*;
 import java.util.function.Consumer;
 
-import net.backslashes.customconduit.MathUtil;
 import net.backslashes.customconduit.ServerConfig;
 import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
@@ -33,6 +32,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -60,23 +60,17 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             double rangeLimit
     ){}
 
-    public record ActiveRecipe(
-            EffectConduitRecipe recipe,
-            List<BlockPos> activeFrameBlocks
-    ){}
-
     private int lastFrameHash = 0;
     public int tickCount;
     public int color = 0xFFFFFF;
-    private float activeRotation;
-    private boolean isActive;
     private long nextAmbientSoundActivation;
 
+    private int activeLevel = 0;
     private int fuelRemainingTicks;
     private ResourceLocation pendingSelectedRecipe = null;
     private SelectedRecipe selectedRecipe = null;
+    private final List<BlockPos> validFrameBlocks = new ArrayList<>();
     private final List<ActiveEffect> activeEffects = new ArrayList<>();
-    private final List<ActiveRecipe> activeRecipes = new ArrayList<>();
 
     public record SelectedRecipe(
             int index,
@@ -84,7 +78,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             EffectConduitRecipe recipe
     ){}
 
-    public static final int FUEL_SLOT = 0;
+    public static final int INV_SLOT_FUEL = 0;
     public final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot){
@@ -114,16 +108,12 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                 case DATA_SELECTED_RECIPE:
                     return self.selectedRecipe != null ? self.selectedRecipe.index : -1;
                 case DATA_FRAME_PROGRESS:
-                    return self.computeFrameProgressLevel();
+                    return self.activeLevel;
                 case DATA_FUEL_TIMER_MAX:
-                    if (self.selectedRecipe == null) {
+                    if (!self.requiresFuel()) {
                         return 0;
                     }
-                    var recipe = self.selectedRecipe.recipe;
-                    if(recipe.fuelIngredient().isEmpty()){
-                        return 0;
-                    }
-                    return recipe.fuelBurnTime();
+                    return self.selectedRecipe.recipe.fuelBurnTime();
                 case DATA_FUEL_REMAINING_TICKS:
                     return self.fuelRemainingTicks;
                 default:
@@ -148,21 +138,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 1;
         }
     };
-
-
-
-    public int computeFrameProgressLevel(){
-        if(activeRecipes.isEmpty()){
-            return 0;
-        }
-
-        double maxFactor = 0.0;
-        for(var recipe : activeRecipes){
-            double factor = recipe.recipe.computePowerFactor(recipe.activeFrameBlocks.size());
-            maxFactor = Math.max(maxFactor, factor);
-        }
-        return 1 + (int) (maxFactor * 3);
-    }
 
     public void setSelectedRecipe(int recipeIndex){
         if(level == null){
@@ -267,20 +242,154 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         pendingSelectedRecipe = null;
     }
 
+    public boolean isActive(){
+        return activeLevel > 0;
+    }
+
+    private void recomputeActiveLevel(BlockPos pos){
+        if(level == null){
+            return;
+        }
+
+        int newActiveLevel = computeActiveLevel();
+        if(newActiveLevel == activeLevel){
+            return;
+        }
+
+        // Toggle active state.
+        if(newActiveLevel > 0 && activeLevel == 0) {
+            onActivated(level, pos);
+        }else if(newActiveLevel == 0 && activeLevel != 0){
+            onDeactivated(level, pos);
+        }
+
+        // Update active effects.
+        activeEffects.clear();
+
+        activeLevel = newActiveLevel;
+        assert selectedRecipe != null;
+        for(var effect : selectedRecipe.recipe.outEffects()){
+            activeEffects.add(new ActiveEffect(
+                effect.effect(),
+                effect.amplifier(),
+                effect.computeEffectRange(activeLevel / 3.0f)
+            ));
+        }
+
+        // Sort effects by range, high-to-low.
+        activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
+    }
+
+
+    // Ranges from 0 to 4, where 0 is inactive.
+    private int computeActiveLevel(){
+        if(selectedRecipe == null){
+            return 0;
+        }
+
+        if(requiresFuel() && fuelRemainingTicks == 0){
+            return 0;
+        }
+
+        if(validFrameBlocks.size() < selectedRecipe.recipe.minFrameBlockCount()){
+            return 0;
+        }
+
+        double frameFactor = selectedRecipe.recipe.computePowerFactor(validFrameBlocks.size());
+        return 1 + (int) (frameFactor * 3);
+    }
+
+    public boolean requiresFuel(){
+        return selectedRecipe != null && !selectedRecipe.recipe.fuelIngredient().isEmpty();
+    }
+
+    private void fuelTick(){
+        if(!requiresFuel()){
+            fuelRemainingTicks = 0;
+            return;
+        }
+
+        if(fuelRemainingTicks > 0){
+            fuelRemainingTicks--;
+        }
+
+        if(fuelRemainingTicks == 0){
+            ItemStack fuelItem = inventory.getStackInSlot(INV_SLOT_FUEL);
+            if(!fuelItem.isEmpty() && selectedRecipe.recipe.fuelIngredient().test(fuelItem)){
+                fuelItem.setCount(fuelItem.getCount() - 1);
+                inventory.setStackInSlot(INV_SLOT_FUEL, fuelItem);
+                fuelRemainingTicks = selectedRecipe.recipe.fuelBurnTime();
+            }
+        }
+    }
+
+    private void updateTick(BlockPos pos){
+        if(this.level == null){
+            return;
+        }
+
+        // Update fuel.
+        this.fuelTick();
+
+        // Check frame blocks.
+        if (this.tickCount % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
+            this.recomputeValidFrameBlocks(pos);
+        }
+
+        // Update active state.
+        this.recomputeActiveLevel(pos);
+
+        // Apply effects.
+        if (isActive()) {
+            if(this.tickCount % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L){
+                this.applyEffects(pos);
+            }
+        }
+
+        setChanged();
+    }
+
+    private void recomputeValidFrameBlocks(BlockPos center){
+        if(selectedRecipe == null){
+            validFrameBlocks.clear();
+            return;
+        }
+
+        if(level == null){
+            return;
+        }
+
+        HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
+        iterFrameCandidates(center, (pos) -> {
+            Block block = level.getBlockState(pos).getBlock();
+            List<BlockPos> blocksOfType = frameBlocksByType.get(block);
+            if(blocksOfType == null){
+                frameBlocksByType.put(block, new ArrayList<>(List.of(pos)));
+            } else {
+                blocksOfType.add(pos);
+            }
+        });
+
+        // Early exit if the frame hasn't actually changed composition.
+        int newFrameHash = selectedRecipe.hashCode();
+        for(Map.Entry<Block, List<BlockPos>> entry : frameBlocksByType.entrySet()){
+            // Compute a special hash that only cares about the number of blocks, not their positions.
+            newFrameHash += entry.getKey().hashCode() * entry.getValue().size();
+        }
+        if(newFrameHash == lastFrameHash){
+            return;
+        }
+        lastFrameHash = newFrameHash;
+
+         selectedRecipe.recipe.computeValidFrameBlocks(frameBlocksByType, validFrameBlocks);
+    }
+
     public static void clientTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
         ++blockEntity.tickCount;
         blockEntity.loadPendingSelectedRecipe();
-        long i = level.getGameTime();
-        if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
-            computeActiveEffects(level, pos, blockEntity);
-            blockEntity.isActive = !blockEntity.activeEffects.isEmpty();
-        }
+        blockEntity.updateTick(pos);
 
-        animationTick(level, pos, blockEntity);
-        if (blockEntity.isActive) {
-            ++blockEntity.activeRotation;
-        }
-
+        blockEntity.animationTick(pos);
     }
 
     private static void onActivated(Level level, BlockPos pos){
@@ -295,33 +404,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         ++blockEntity.tickCount;
         long i = level.getGameTime();
 
-        if(blockEntity.fuelRemainingTicks > 0){
-            blockEntity.fuelRemainingTicks--;
-        }
-
         blockEntity.loadPendingSelectedRecipe();
+        blockEntity.updateTick(pos);
 
-        if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
-            // Compute active effects.
-            computeActiveEffects(level, pos, blockEntity);
-            boolean shouldBeActive = !blockEntity.activeEffects.isEmpty();
-
-            // Toggle active state.
-            if (shouldBeActive != blockEntity.isActive) {
-                blockEntity.isActive = shouldBeActive;
-                if(blockEntity.isActive){
-                    onActivated(level, pos);
-                } else {
-                    onDeactivated(level, pos);
-                }
-            }
-
-            if (blockEntity.isActive) {
-                applyEffects(level, pos, blockEntity.activeEffects);
-            }
-        }
-
-        if (blockEntity.isActive) {
+        if (blockEntity.isActive()) {
             if (i % 100L == 0L) {
                 level.playSound(null, pos, ModSounds.CONDUIT_AMBIENT.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             }
@@ -343,85 +429,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
-    private static void computeActiveEffects(Level level, BlockPos center, EffectConduitBlockEntity blockEntity) {
-        if(blockEntity.selectedRecipe == null){
-            blockEntity.activeEffects.clear();
-            blockEntity.activeRecipes.clear();
-            blockEntity.color = 0xFFFFFF;
-            return;
-        }
-
-        HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
-        iterFrameCandidates(center, (pos) -> {
-            Block block = level.getBlockState(pos).getBlock();
-            List<BlockPos> blocksOfType = frameBlocksByType.get(block);
-            if(blocksOfType == null){
-                frameBlocksByType.put(block, new ArrayList<>(List.of(pos)));
-            } else {
-                blocksOfType.add(pos);
-            }
-        });
-
-        // Early exit if the frame hasn't actually changed composition.
-        int newFrameHash = blockEntity.selectedRecipe.hashCode();
-        for(Map.Entry<Block, List<BlockPos>> entry : frameBlocksByType.entrySet()){
-            // Compute a special hash that only cares about the number of blocks, not their positions.
-            newFrameHash += entry.getKey().hashCode() * entry.getValue().size();
-        }
-        if(newFrameHash == blockEntity.lastFrameHash){
-            return;
-        }
-
-        blockEntity.lastFrameHash = newFrameHash;
-
-        blockEntity.activeEffects.clear();
-        blockEntity.activeRecipes.clear();
-        blockEntity.color = 0xFFFFFF;
-
-        float colorTotalInfluence = 0.2f;
-        float r = colorTotalInfluence;
-        float g = colorTotalInfluence;
-        float b = colorTotalInfluence;
-
-        // Gather active effects.
-        EffectConduitRecipe recipe = blockEntity.selectedRecipe.recipe();
-        List<BlockPos> validFrameBlocks = recipe.computeValidFrameBlocks(frameBlocksByType);
-
-        if(validFrameBlocks.size() < recipe.minFrameBlockCount()){
-            blockEntity.setChanged();
-            return;
-        }
-
-        double powerFactor = recipe.computePowerFactor(validFrameBlocks.size());
-
-        // Accumulate color;
-        float colorInfluence = (float) (powerFactor * 0.5 + 0.5);
-        r += recipe.color().r() * colorInfluence;
-        g += recipe.color().g() * colorInfluence;
-        b += recipe.color().b() * colorInfluence;
-        colorTotalInfluence += colorInfluence;
-
-        blockEntity.activeRecipes.add(new ActiveRecipe(recipe, validFrameBlocks));
-
-        // Accumulate effects.
-        List<EffectConduitRecipe.ConduitEffect> outEffects = recipe.outEffects();
-        for (EffectConduitRecipe.ConduitEffect effect : outEffects) {
-            double range = effect.computeEffectRange(powerFactor);
-            blockEntity.activeEffects.add(new ActiveEffect(
-                    effect.effect(),
-                    effect.amplifier(),
-                    range
-            ));
-        }
-
-        blockEntity.color = new MathUtil.RgbColor(r / colorTotalInfluence, g / colorTotalInfluence, b / colorTotalInfluence).toHexArgb();
-
-        // Sort effects by range, high-to-low.
-        blockEntity.activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
-        blockEntity.setChanged();
-    }
-
-    private static void applyEffects(Level level, BlockPos pos, List<ActiveEffect> activeEffects) {
+    private void applyEffects(BlockPos pos) {
         if(activeEffects.isEmpty()){
             return;
         }
@@ -445,37 +453,34 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
-    private static void animationTick(Level level, BlockPos pos, EffectConduitBlockEntity blockEntity) {
+    private void animationTick(BlockPos pos) {
+        if(level == null){
+            return;
+        }
+
         RandomSource randomsource = level.random;
-        double d0 = Mth.sin((float)(blockEntity.tickCount + 35) * 0.1F) / 2.0F + 0.5F;
+        double d0 = Mth.sin((float)(tickCount + 35) * 0.1F) / 2.0F + 0.5F;
         d0 = (d0 * d0 + d0) * (double)0.3F;
         Vec3 vec3 = new Vec3((double)pos.getX() + (double)0.5F, (double)pos.getY() + (double)1.5F + d0, (double)pos.getZ() + (double)0.5F);
 
-        for(ActiveRecipe recipe : blockEntity.activeRecipes){
-            for(BlockPos blockpos : recipe.activeFrameBlocks) {
-                if (randomsource.nextInt(100) == 0) {
-                    level.addParticle(
-                            new EffectConduitParticles.EffectConduitParticleOptions(
-                                pos.getCenter(),
-                                recipe.recipe.color()
-                            ),
-                            (double) blockpos.getX() + level.random.nextFloat(),
-                            (double) blockpos.getY() + level.random.nextFloat(),
-                            (double) blockpos.getZ() + level.random.nextFloat(),
-                            0.0,
-                            0.0,
-                            0.0
-                    );
-                }
+        if(!isActive()){
+            return;
+        }
+        for(BlockPos blockpos : validFrameBlocks) {
+            if (randomsource.nextInt(100) == 0) {
+                level.addParticle(
+                        new EffectConduitParticles.EffectConduitParticleOptions(
+                            pos.getCenter(),
+                            selectedRecipe.recipe().color()
+                        ),
+                        (double) blockpos.getX() + level.random.nextFloat(),
+                        (double) blockpos.getY() + level.random.nextFloat(),
+                        (double) blockpos.getZ() + level.random.nextFloat(),
+                        0.0,
+                        0.0,
+                        0.0
+                );
             }
         }
-    }
-
-    public boolean isActive() {
-        return this.isActive;
-    }
-
-    public float getActiveRotation(float partialTick) {
-        return (this.activeRotation + partialTick) * -0.0375F;
     }
 }
