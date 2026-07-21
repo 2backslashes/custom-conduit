@@ -9,6 +9,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -55,6 +56,8 @@ public class ModRecipes {
                 "Example 1",
                 16,
                 42,
+                600,
+                Ingredient.of(ItemTags.COALS),
                 Ingredient.of(Items.GOLD_BLOCK),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(
@@ -71,6 +74,8 @@ public class ModRecipes {
                 "Example 2",
                 16,
                 42,
+                1600,
+                Ingredient.EMPTY,
                 Ingredient.of(Items.IRON_BLOCK),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(

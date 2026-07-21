@@ -28,6 +28,8 @@ public record EffectConduitRecipe(
         String displayName,
         int minFrameBlockCount,
         int maxFrameBlockCount,
+        int fuelBurnTime,
+        Ingredient fuelIngredient,
         Ingredient frameBlockIngredient,
         List<ConduitEffect> outEffects,
         MathUtil.RgbColor color
@@ -124,6 +126,8 @@ public record EffectConduitRecipe(
                 Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
                 Codec.INT.optionalFieldOf("minFrameBlockCount", 16).forGetter(EffectConduitRecipe::minFrameBlockCount),
                 Codec.INT.optionalFieldOf("maxFrameBlockCount", 42).forGetter(EffectConduitRecipe::maxFrameBlockCount),
+                Codec.INT.optionalFieldOf("fuelBurnTime", 1600).forGetter(EffectConduitRecipe::fuelBurnTime),
+                Ingredient.CODEC_NONEMPTY.optionalFieldOf("fuel", Ingredient.EMPTY).forGetter(EffectConduitRecipe::fuelIngredient),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
                 ConduitEffect.CODEC.listOf(1, 255).fieldOf("effects").forGetter(EffectConduitRecipe::outEffects),
                 MathUtil.RgbColor.CODEC.optionalFieldOf("color", new MathUtil.RgbColor(1.0f, 1.0f, 1.0f)).forGetter(EffectConduitRecipe::color)
@@ -147,6 +151,8 @@ public record EffectConduitRecipe(
             String displayName = ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).decode(buffer);
             int minFrameBlockCount = buffer.readByte();
             int maxFrameBlockCount = buffer.readByte();
+            int fuelBurnTime = buffer.readInt();
+            Ingredient fuelIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
             List<ConduitEffect> effects = new ArrayList<>();
             int effectCount = buffer.readVarInt();
@@ -159,6 +165,8 @@ public record EffectConduitRecipe(
                     displayName,
                     minFrameBlockCount,
                     maxFrameBlockCount,
+                    fuelBurnTime,
+                    fuelIngredient,
                     frameBlockIngredient,
                     effects,
                     color
@@ -169,6 +177,8 @@ public record EffectConduitRecipe(
             ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).encode(buffer, recipe.displayName);
             buffer.writeByte(recipe.minFrameBlockCount);
             buffer.writeByte(recipe.maxFrameBlockCount);
+            buffer.writeInt(recipe.fuelBurnTime);
+            Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.fuelIngredient);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);
             buffer.writeVarInt(recipe.outEffects.size());
             for(ConduitEffect effect : recipe.outEffects){

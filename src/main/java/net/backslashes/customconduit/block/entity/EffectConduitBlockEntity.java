@@ -36,7 +36,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.LecternBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -73,6 +72,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     private boolean isActive;
     private long nextAmbientSoundActivation;
 
+    private int fuelRemainingTicks;
     private ResourceLocation pendingSelectedRecipe = null;
     private SelectedRecipe selectedRecipe = null;
     private final List<ActiveEffect> activeEffects = new ArrayList<>();
@@ -103,23 +103,43 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
 
     public static final int DATA_SELECTED_RECIPE = 0;
     public static final int DATA_FRAME_PROGRESS = 1;
+    public static final int DATA_FUEL_TIMER_MAX = 2;
+    public static final int DATA_FUEL_REMAINING_TICKS = 3;
 
     public final ContainerData dataAccess = new ContainerData() {
         @Override
         public int get(int i) {
-            return switch (i) {
-                case DATA_SELECTED_RECIPE -> EffectConduitBlockEntity.this.selectedRecipe == null ? -1 : EffectConduitBlockEntity.this.selectedRecipe.index;
-                case DATA_FRAME_PROGRESS -> EffectConduitBlockEntity.this.computeFrameProgressLevel();
-                default -> 0;
-            };
+            var self = EffectConduitBlockEntity.this;
+            switch (i) {
+                case DATA_SELECTED_RECIPE:
+                    return self.selectedRecipe != null ? self.selectedRecipe.index : -1;
+                case DATA_FRAME_PROGRESS:
+                    return self.computeFrameProgressLevel();
+                case DATA_FUEL_TIMER_MAX:
+                    if (self.selectedRecipe == null) {
+                        return 0;
+                    }
+                    var recipe = self.selectedRecipe.recipe;
+                    if(recipe.fuelIngredient().isEmpty()){
+                        return 0;
+                    }
+                    return recipe.fuelBurnTime();
+                case DATA_FUEL_REMAINING_TICKS:
+                    return self.fuelRemainingTicks;
+                default:
+                    return 0;
+            }
         }
 
         @Override
         public void set(int i, int value) {
+            var self = EffectConduitBlockEntity.this;
             switch(i){
                 case DATA_SELECTED_RECIPE:
-                   EffectConduitBlockEntity.this.setSelectedRecipe(value);
+                   self.setSelectedRecipe(value);
                    break;
+                case DATA_FUEL_REMAINING_TICKS:
+                   self.fuelRemainingTicks = value;
             }
         }
 
@@ -149,6 +169,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return;
         }
 
+        if(this.selectedRecipe != null && recipeIndex == this.selectedRecipe.index){
+            return;
+        }
+
         var allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
         if(recipeIndex >= allRecipes.size() || recipeIndex < 0){
             System.err.println("Player selected invalid conduit recipe with index " + recipeIndex + "!");
@@ -161,6 +185,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                 recipe.value()
         );
 
+        this.fuelRemainingTicks = 0;
         setChanged();
     }
 
@@ -180,23 +205,26 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         Containers.dropContents(this.level, this.worldPosition, inv);
     }
 
-    private static final String INVENTORY_TAG = "inventory";
-    private static final String SELECTED_RECIPE_ID = "selected_recipe_id";
+    private static final String TAG_INVENTORY = "inventory";
+    private static final String TAG_SELECTED_RECIPE_ID = "selected_recipe_id";
+    private static final String TAG_FUEL_REMAINING = "fuel_remaining";
     @Override
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put(INVENTORY_TAG, inventory.serializeNBT(registries));
+        tag.put(TAG_INVENTORY, inventory.serializeNBT(registries));
+        tag.putInt(TAG_FUEL_REMAINING, this.fuelRemainingTicks);
         if(selectedRecipe != null){
-            tag.putString(SELECTED_RECIPE_ID, selectedRecipe.id().toString());
+            tag.putString(TAG_SELECTED_RECIPE_ID, selectedRecipe.id().toString());
         }
     }
 
     @Override
     protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
-        inventory.deserializeNBT(registries, tag.getCompound(INVENTORY_TAG));
-        if(tag.contains(SELECTED_RECIPE_ID)){
-            String[] parts = tag.getString(SELECTED_RECIPE_ID).split(":");
+        inventory.deserializeNBT(registries, tag.getCompound(TAG_INVENTORY));
+        this.fuelRemainingTicks = tag.getInt(TAG_FUEL_REMAINING);
+        if(tag.contains(TAG_SELECTED_RECIPE_ID)){
+            String[] parts = tag.getString(TAG_SELECTED_RECIPE_ID).split(":");
             if(parts.length == 2){
                 this.pendingSelectedRecipe = ResourceLocation.fromNamespaceAndPath(
                     parts[0],
@@ -243,7 +271,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         ++blockEntity.tickCount;
         blockEntity.loadPendingSelectedRecipe();
         long i = level.getGameTime();
-        if (i % 40L == 0L) {
+        if (i % ServerConfig.CONDUIT_TICKS_PER_REFRESH.get() == 0L) {
             computeActiveEffects(level, pos, blockEntity);
             blockEntity.isActive = !blockEntity.activeEffects.isEmpty();
         }
@@ -266,6 +294,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     public static void serverTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
         ++blockEntity.tickCount;
         long i = level.getGameTime();
+
+        if(blockEntity.fuelRemainingTicks > 0){
+            blockEntity.fuelRemainingTicks--;
+        }
 
         blockEntity.loadPendingSelectedRecipe();
 
