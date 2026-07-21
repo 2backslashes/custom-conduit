@@ -3,7 +3,12 @@ package net.backslashes.customconduit.block;
 import net.backslashes.customconduit.CustomConduit;
 import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.backslashes.customconduit.block.entity.EffectConduitRenderer;
+import net.backslashes.customconduit.item.ModItems;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
@@ -22,9 +27,19 @@ public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(CustomConduit.MODID);
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CustomConduit.MODID);
 
-    public static final DeferredBlock<EffectConduitBlock> EFFECT_CONDUIT = BLOCKS.register(
+    private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block){
+        ModItems.ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
+    }
+
+    private static <T extends Block> DeferredBlock<T> registerBlock(String name, Supplier<T> block){
+        var outBlock = BLOCKS.register(name, block);
+        registerBlockItem(name, outBlock);
+        return outBlock;
+    }
+
+    public static final DeferredBlock<EffectConduitBlock> EFFECT_CONDUIT = registerBlock(
             "effect_conduit",
-            registerName -> new EffectConduitBlock(
+            () -> new EffectConduitBlock(
                     BlockBehaviour.Properties.of()
                             .mapColor(MapColor.DIAMOND)
                             .forceSolidOn()
@@ -32,6 +47,7 @@ public class ModBlocks {
                             .strength(3.0F)
                             .lightLevel((p_152677_) -> 15)
                             .noOcclusion()
+                            .sound(SoundType.HEAVY_CORE)
             ));
 
     public static final Supplier<BlockEntityType<EffectConduitBlockEntity>> EFFECT_CONDUIT_BLOCK_ENTITY = BLOCK_ENTITIES.register(
@@ -42,6 +58,7 @@ public class ModBlocks {
                     )
                     .build(null)
     );
+
 
 
     public static void register(IEventBus eventBus) {

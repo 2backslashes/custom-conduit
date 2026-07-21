@@ -1,15 +1,18 @@
 package net.backslashes.customconduit;
 import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.item.ModItems;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.ModParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
 import net.backslashes.customconduit.screen.ModMenuTypes;
 import net.backslashes.customconduit.screen.custom.ConduitScreen;
 import net.backslashes.customconduit.sound.ModSounds;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -38,6 +41,7 @@ public class CustomConduit {
         modEventBus.addListener(this::commonSetup);
 
         ModBlocks.register(modEventBus);
+        ModItems.register(modEventBus);
         ModRecipes.register(modEventBus);
         ModParticles.register(modEventBus);
         ModSounds.register(modEventBus);
@@ -69,6 +73,14 @@ public class CustomConduit {
         @SubscribeEvent
         public static void registerScreens(RegisterMenuScreensEvent event){
             event.register(ModMenuTypes.CONDUIT_MENU.get(), ConduitScreen::new);
+        }
+
+        @SubscribeEvent // on the mod event bus
+        public static void buildContents(BuildCreativeModeTabContentsEvent event) {
+            // Is this the tab we want to add to?
+            if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+                event.accept(ModBlocks.EFFECT_CONDUIT);
+            }
         }
     }
 }
