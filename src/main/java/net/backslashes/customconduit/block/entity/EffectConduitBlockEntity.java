@@ -112,7 +112,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                 case DATA_SELECTED_RECIPE:
                     return self.selectedRecipe != null ? self.selectedRecipe.index : -1;
                 case DATA_FRAME_PROGRESS:
-                    return self.activeLevel;
+                    return self.computeActiveLevelFromOnlyFrames();
                 case DATA_FUEL_TIMER_MAX:
                     if (!self.requiresFuel()) {
                         return -1;
@@ -130,7 +130,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             var self = EffectConduitBlockEntity.this;
             switch(i){
                 case DATA_SELECTED_RECIPE:
-                   self.setSelectedRecipe(value);
+                   self.setSelectedRecipe(value, true);
                    break;
                 case DATA_FUEL_REMAINING_TICKS:
                    self.fuelRemainingTicks = value;
@@ -143,7 +143,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     };
 
-    public void setSelectedRecipe(int recipeIndex){
+    public void setSelectedRecipe(int recipeIndex, boolean resetFuel){
         if(level == null){
             return;
         }
@@ -154,7 +154,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
 
         var allRecipes = level.getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get());
         if(recipeIndex >= allRecipes.size() || recipeIndex < 0){
-            System.err.println("Player selected invalid conduit recipe with index " + recipeIndex + "!");
             return;
         }
         var recipe = allRecipes.get(recipeIndex);
@@ -164,7 +163,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                 recipe.value()
         );
 
-        this.fuelRemainingTicks = 0;
+        if(resetFuel){
+            this.fuelRemainingTicks = 0;
+        }
+
         this.color = this.selectedRecipe.recipe.color().toHexArgb();
         setChanged();
     }
@@ -236,7 +238,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         for(int i=0; i<allRecipes.size(); ++i){
             var recipe = allRecipes.get(i);
             if(recipe.id().equals(pendingSelectedRecipe)) {
-                setSelectedRecipe(i);
+                setSelectedRecipe(i, false);
                 break;
             }
         }
@@ -292,6 +294,14 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 0;
         }
 
+        return computeActiveLevelFromOnlyFrames();
+    }
+
+    private int computeActiveLevelFromOnlyFrames(){
+        if(selectedRecipe == null){
+            return 0;
+        }
+
         if(validFrameBlocks.size() < selectedRecipe.recipe.minFrameBlockCount()){
             return 0;
         }
@@ -306,12 +316,12 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
 
     private void fuelTick(){
         if(!requiresFuel()){
-            fuelRemainingTicks = 0;
             return;
         }
 
+
         // Don't waste fuel if there aren't enough frame blocks.
-        if(validFrameBlocks.size() >= this.selectedRecipe.recipe.minFrameBlockCount()) {
+        if(isActive()) {
             if (fuelRemainingTicks > 0) {
                 fuelRemainingTicks--;
             }
@@ -320,7 +330,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         if(fuelRemainingTicks == 0){
             ItemStack fuelItem = inventory.getStackInSlot(INV_SLOT_FUEL);
             if(!fuelItem.isEmpty() && selectedRecipe.recipe.fuelIngredient().test(fuelItem)){
-                fuelItem.setCount(fuelItem.getCount() - 1);
+                fuelItem.shrink(1);
                 fuelRemainingTicks = selectedRecipe.recipe.fuelBurnTime();
             }
         }
