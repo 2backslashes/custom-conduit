@@ -19,6 +19,8 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import static net.backslashes.customconduit.MathUtil.lerpf;
+
 @OnlyIn(Dist.CLIENT)
 public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitBlockEntity> {
     public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/base"));
@@ -45,19 +47,21 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             VertexConsumer vertexconsumer1 = SHELL_TEXTURE.buffer(bufferSource, RenderType::entitySolid);
             poseStack.pushPose();
             poseStack.translate(0.5F, 0.5F, 0.5F);
-            poseStack.mulPose(new Quaternionf().rotationY(f * (float) (Math.PI / 180.0)));
+//            poseStack.mulPose(new Quaternionf().rotationY(f * (float) (Math.PI / 180.0)));
             poseStack.scale(2.0f, 2.0f, 2.0f);
             this.shell.render(poseStack, vertexconsumer1, packedLight, packedOverlay);
             poseStack.popPose();
         } else {
             // Cage.
             poseStack.pushPose();
-            float wobble = 0.01f;
-            float wobbleSpeed = 2.0f;
+            float factor = (blockEntity.getActiveLevel() - 1) / 3.0f;
+            float wobble = lerpf(0.005f,  0.03f, factor);
+            float wobbleSpeed = lerpf(0.1f,  2.0f, factor);
             poseStack.translate(0.5F + Math.sin(f * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.3 * wobbleSpeed) * wobble, 0.5F + Math.cos(f * 1.7 * wobbleSpeed) * wobble);
             poseStack.scale(2.0f, 2.0f, 2.0f);
             Vector3f vector3f = new Vector3f(0.5F, 1.0F, 0.5F).normalize();
-            poseStack.mulPose(new Quaternionf().rotationAxis(f * (float) (Math.PI / 180.0), vector3f));
+            float spinSpeed = lerpf(1.0f, 3.0f, factor);
+            poseStack.mulPose(new Quaternionf().rotationAxis(f * spinSpeed * (float) (Math.PI / 180.0), vector3f));
             this.cage.render(poseStack, ACTIVE_SHELL_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull), packedLight, packedOverlay);
             poseStack.popPose();
 
