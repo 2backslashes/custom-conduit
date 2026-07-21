@@ -161,6 +161,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         );
 
         this.fuelRemainingTicks = 0;
+        this.color = this.selectedRecipe.recipe.color().toHexArgb();
         setChanged();
     }
 
@@ -309,8 +310,11 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return;
         }
 
-        if(fuelRemainingTicks > 0){
-            fuelRemainingTicks--;
+        // Don't waste fuel if there aren't enough frame blocks.
+        if(validFrameBlocks.size() >= this.selectedRecipe.recipe.minFrameBlockCount()) {
+            if (fuelRemainingTicks > 0) {
+                fuelRemainingTicks--;
+            }
         }
 
         if(fuelRemainingTicks == 0){
