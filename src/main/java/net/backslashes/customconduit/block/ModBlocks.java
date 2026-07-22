@@ -16,6 +16,8 @@ import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -74,5 +76,13 @@ public class ModBlocks {
                 // A function of BlockEntityRendererProvider.Context to BlockEntityRenderer.
                 EffectConduitRenderer::new
         );
+    }
+    @SubscribeEvent // on the mod event bus
+    public static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        event.registerBlockEntity(
+                Capabilities.ItemHandler.BLOCK,
+                ModBlocks.EFFECT_CONDUIT_BLOCK_ENTITY.get(),
+                (blockEntity, side) -> blockEntity
+    );
     }
 }

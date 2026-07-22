@@ -32,6 +32,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -39,19 +40,82 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EffectConduitBlockEntity extends BlockEntity implements MenuProvider {
+public class EffectConduitBlockEntity extends BlockEntity implements MenuProvider , IItemHandler {
     @Override
-    public Component getDisplayName() {
+    public @NotNull Component getDisplayName() {
         return Component.literal("Conduit");
     }
 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
         return new ConduitMenu(i, inventory, this);
+    }
+
+    @Override
+    public int getSlots() {
+        return 1;
+    }
+
+    @Override
+    public @NotNull ItemStack getStackInSlot(int i) {
+        return inventory.getStackInSlot(i);
+    }
+
+    @Override
+    public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack itemStack, boolean simulate) {
+        var existing = inventory.getStackInSlot(slot);
+        if(existing.isEmpty()){
+            if(!simulate){
+                inventory.setStackInSlot(slot, itemStack);
+            }
+            return ItemStack.EMPTY;
+        }
+
+        if(!existing.getItem().equals(itemStack.getItem()) || existing.getCount() == existing.getMaxStackSize()){
+            return itemStack;
+        }
+
+        int countToAdd = Math.min(itemStack.getCount(), existing.getMaxStackSize() - existing.getCount());
+        if(!simulate){
+            existing.grow(countToAdd);
+        }
+        return new ItemStack(itemStack.getItem(), itemStack.getCount() - countToAdd);
+    }
+
+    @Override
+    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+        var existing = inventory.getStackInSlot(slot);
+        if(existing.isEmpty()){
+            return ItemStack.EMPTY;
+        }
+        int countToTake = Math.min(amount, existing.getCount());
+
+        var out = existing.copy();
+        out.setCount(countToTake);
+
+        if(!simulate){
+            existing.shrink(countToTake);
+        }
+        return out;
+    }
+
+    @Override
+    public int getSlotLimit(int i) {
+        var existing = inventory.getStackInSlot(i);
+        if(existing.isEmpty()){
+            return Item.DEFAULT_MAX_STACK_SIZE;
+        }
+        return existing.getMaxStackSize();
+    }
+
+    @Override
+    public boolean isItemValid(int i, @NotNull ItemStack itemStack) {
+        return true;
     }
 
     public record ActiveEffect(
@@ -95,14 +159,14 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         super(ModBlocks.EFFECT_CONDUIT_BLOCK_ENTITY.get(), pos, blockState);
     }
 
+    public int getActiveLevel(){
+        return activeLevel;
+    }
+
     public static final int DATA_SELECTED_RECIPE = 0;
     public static final int DATA_FRAME_PROGRESS = 1;
     public static final int DATA_FUEL_TIMER_MAX = 2;
     public static final int DATA_FUEL_REMAINING_TICKS = 3;
-
-    public int getActiveLevel(){
-        return activeLevel;
-    }
 
     public final ContainerData dataAccess = new ContainerData() {
         @Override
