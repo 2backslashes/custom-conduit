@@ -72,7 +72,11 @@ public record EffectConduitRecipe(
     }
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
-        return NonNullList.of(frameBlockIngredient);
+        // NonNullList.of doesn't work here. Not sure why, don't care enough to find out.
+        NonNullList<Ingredient> list = NonNullList.create();
+        list.add(frameBlockIngredient);
+        list.add(fuelIngredient);
+        return list;
     }
 
     // We don't actually use this.
