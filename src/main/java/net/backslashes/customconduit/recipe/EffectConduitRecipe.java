@@ -26,25 +26,51 @@ import java.util.Map;
 
 public record EffectConduitRecipe(
         String displayName,
-        int minFrameBlockCount,
-        int maxFrameBlockCount,
+        List<ConduitTier> tiers,
         int fuelBurnTime,
         Ingredient fuelIngredient,
         Ingredient frameBlockIngredient,
         List<ConduitEffect> outEffects,
         MathUtil.RgbColor color
 ) implements Recipe<EffectConduitRecipeInput> {
+    public record ConduitTier(
+        int frameBlockThreshold,
+        int effectRange
+    ) {
+        public static List<ConduitTier> DEFAULT_TIERS = List.of(
+                new ConduitTier(16, 16),
+                new ConduitTier(24, 48),
+                new ConduitTier(32, 64),
+                new ConduitTier(42, 96)
+        );
+        public static final Codec<ConduitTier> CODEC = RecordCodecBuilder.create(inst -> inst.group(
+                Codec.INT.fieldOf("frameThreshold").forGetter(ConduitTier::frameBlockThreshold),
+                Codec.INT.fieldOf("range").forGetter(ConduitTier::effectRange)
+        ).apply(inst, ConduitTier::new));
+
+        public static final StreamCodec<RegistryFriendlyByteBuf, ConduitTier> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ConduitTier>() {
+            @Override
+            public void encode(@NotNull RegistryFriendlyByteBuf buffer, ConduitTier effect) {
+                buffer.writeInt(effect.frameBlockThreshold);
+                buffer.writeInt(effect.effectRange);
+            }
+
+            @Override
+            public @NotNull ConduitTier decode(@NotNull RegistryFriendlyByteBuf buffer) {
+                int frameThreshold = buffer.readInt();
+                int range = buffer.readInt();
+                return new ConduitTier(frameThreshold, range);
+            }
+        };
+    }
+
     public record ConduitEffect(
         Holder<MobEffect> effect,
-        int amplifier,
-        double minRange,
-        double maxRange
+        int amplifier
     ){
         public static final Codec<ConduitEffect> CODEC = RecordCodecBuilder.create(inst -> inst.group(
                 MobEffect.CODEC.fieldOf("effect").forGetter(ConduitEffect::effect),
-                Codec.INT.optionalFieldOf("amplifier", 0).forGetter(ConduitEffect::amplifier),
-                Codec.DOUBLE.optionalFieldOf("minRange", 32.0).forGetter(ConduitEffect::minRange),
-                Codec.DOUBLE.optionalFieldOf("maxRange", 96.0).forGetter(ConduitEffect::maxRange)
+                Codec.INT.optionalFieldOf("amplifier", 0).forGetter(ConduitEffect::amplifier)
         ).apply(inst, ConduitEffect::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, ConduitEffect> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ConduitEffect>() {
@@ -52,23 +78,15 @@ public record EffectConduitRecipe(
             public void encode(@NotNull RegistryFriendlyByteBuf buffer, ConduitEffect effect) {
                 MobEffect.STREAM_CODEC.encode(buffer, effect.effect);
                 buffer.writeInt(effect.amplifier);
-                buffer.writeDouble(effect.minRange);
-                buffer.writeDouble(effect.maxRange);
             }
 
             @Override
             public @NotNull ConduitEffect decode(@NotNull RegistryFriendlyByteBuf buffer) {
                 Holder<MobEffect> mobEffect = MobEffect.STREAM_CODEC.decode(buffer);
                 int amplifier = buffer.readInt();
-                double minRange = buffer.readDouble();
-                double maxRange = buffer.readDouble();
-                return new ConduitEffect(mobEffect, amplifier, minRange, maxRange);
+                return new ConduitEffect(mobEffect, amplifier);
             }
         };
-
-        public double computeEffectRange(double powerFactor){
-            return powerFactor * (maxRange - minRange) + minRange;
-        }
     }
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
@@ -81,7 +99,7 @@ public record EffectConduitRecipe(
 
     // We don't actually use this.
     @Override
-    public boolean matches(@NotNull EffectConduitRecipeInput effectConduitRecipeInput, Level level) {
+    public boolean matches(@NotNull EffectConduitRecipeInput effectConduitRecipeInput, @NotNull Level level) {
         return false;
     }
 
@@ -95,13 +113,9 @@ public record EffectConduitRecipe(
         }
     }
 
-    public double computePowerFactor(int validFrameBlockCount){
-        return Math.clamp((validFrameBlockCount - minFrameBlockCount) / (double) (maxFrameBlockCount - minFrameBlockCount), 0.0f, 1.0f);
-    }
-
     @Override
-    public ItemStack assemble(@NotNull EffectConduitRecipeInput effectConduitRecipeInput, HolderLookup.@NotNull Provider provider) {
-        return null;
+    public @NotNull ItemStack assemble(@NotNull EffectConduitRecipeInput effectConduitRecipeInput, HolderLookup.@NotNull Provider provider) {
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -110,8 +124,8 @@ public record EffectConduitRecipe(
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.@NotNull Provider provider) {
-        return null;
+    public @NotNull ItemStack getResultItem(HolderLookup.@NotNull Provider provider) {
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -127,8 +141,7 @@ public record EffectConduitRecipe(
     public static class EffectConduitRecipeSerializer implements RecipeSerializer<EffectConduitRecipe> {
         public static final MapCodec<EffectConduitRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
                 Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
-                Codec.INT.optionalFieldOf("minFrameBlockCount", 16).forGetter(EffectConduitRecipe::minFrameBlockCount),
-                Codec.INT.optionalFieldOf("maxFrameBlockCount", 42).forGetter(EffectConduitRecipe::maxFrameBlockCount),
+                ConduitTier.CODEC.listOf(4,4).optionalFieldOf("tiers", ConduitTier.DEFAULT_TIERS).forGetter(EffectConduitRecipe::tiers),
                 Codec.INT.optionalFieldOf("fuelBurnTime", 1600).forGetter(EffectConduitRecipe::fuelBurnTime),
                 Ingredient.CODEC_NONEMPTY.optionalFieldOf("fuel", Ingredient.EMPTY).forGetter(EffectConduitRecipe::fuelIngredient),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
@@ -152,8 +165,12 @@ public record EffectConduitRecipe(
 
         private static EffectConduitRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             String displayName = ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).decode(buffer);
-            int minFrameBlockCount = buffer.readByte();
-            int maxFrameBlockCount = buffer.readByte();
+            int tierCount = buffer.readInt();
+            List<ConduitTier> tiers = new ArrayList<>();
+            for(int i=0; i<tierCount; ++i){
+                ConduitTier tier = ConduitTier.STREAM_CODEC.decode(buffer);
+                tiers.add(tier);
+            }
             int fuelBurnTime = buffer.readInt();
             Ingredient fuelIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
@@ -166,8 +183,7 @@ public record EffectConduitRecipe(
             MathUtil.RgbColor color = MathUtil.RgbColor.STREAM_CODEC.decode(buffer);
             return new EffectConduitRecipe(
                     displayName,
-                    minFrameBlockCount,
-                    maxFrameBlockCount,
+                    tiers,
                     fuelBurnTime,
                     fuelIngredient,
                     frameBlockIngredient,
@@ -178,8 +194,10 @@ public record EffectConduitRecipe(
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
             ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).encode(buffer, recipe.displayName);
-            buffer.writeByte(recipe.minFrameBlockCount);
-            buffer.writeByte(recipe.maxFrameBlockCount);
+            buffer.writeInt(recipe.tiers.size());
+            for(ConduitTier tier : recipe.tiers){
+                ConduitTier.STREAM_CODEC.encode(buffer, tier);
+            }
             buffer.writeInt(recipe.fuelBurnTime);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.fuelIngredient);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);

@@ -118,12 +118,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         return true;
     }
 
-    public record ActiveEffect(
-            Holder<MobEffect> effect,
-            int amplifier,
-            double rangeLimit
-    ){}
-
     private int lastFrameHash = 0;
     public int tickCount;
     public int color = 0xFFFFFF;
@@ -134,7 +128,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     private ResourceLocation pendingSelectedRecipe = null;
     private SelectedRecipe selectedRecipe = null;
     private final List<BlockPos> validFrameBlocks = new ArrayList<>();
-    private final List<ActiveEffect> activeEffects = new ArrayList<>();
 
     public record SelectedRecipe(
             int index,
@@ -330,21 +323,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             onDeactivated(level, pos);
         }
 
-        // Update active effects.
-        activeEffects.clear();
-
         activeLevel = newActiveLevel;
-        assert selectedRecipe != null;
-        for(var effect : selectedRecipe.recipe.outEffects()){
-            activeEffects.add(new ActiveEffect(
-                effect.effect(),
-                effect.amplifier(),
-                effect.computeEffectRange(activeLevel / 3.0f)
-            ));
-        }
-
-        // Sort effects by range, high-to-low.
-        activeEffects.sort(Comparator.comparingDouble((ActiveEffect a) -> a.rangeLimit).reversed());
     }
 
 
@@ -366,12 +345,13 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 0;
         }
 
-        if(validFrameBlocks.size() < selectedRecipe.recipe.minFrameBlockCount()){
-            return 0;
+        var tiers = selectedRecipe.recipe.tiers();
+        for(int i=tiers.size()-1; i>=0; --i){
+            if(validFrameBlocks.size() >= tiers.get(i).frameBlockThreshold()){
+                return i + 1;
+            }
         }
-
-        double frameFactor = selectedRecipe.recipe.computePowerFactor(validFrameBlocks.size());
-        return 1 + (int) (frameFactor * 3);
+        return 0;
     }
 
     public boolean requiresFuel(){
@@ -507,10 +487,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     }
 
     private void applyEffects(BlockPos pos) {
-        if(activeEffects.isEmpty()){
-            return;
-        }
-        int maxSearchRange = (int) Math.ceil(activeEffects.getFirst().rangeLimit);
+        assert selectedRecipe != null;
+        assert level != null;
+
+        int maxSearchRange = selectedRecipe.recipe.tiers().get(this.activeLevel-1).effectRange();
         int j = maxSearchRange / 7 * 16;
         int k = pos.getX();
         int l = pos.getY();
@@ -519,13 +499,11 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
         for(Player player : players){
             double dist = player.position().distanceTo(pos.getCenter());
-            for(ActiveEffect effect : activeEffects){
-                if(dist > effect.rangeLimit){
-                    // Effects are sorted by range, so we can break if the player is too far for this effect.
-                    break;
-                }
-
-                player.addEffect(new MobEffectInstance(effect.effect(), ServerConfig.CONDUIT_EFFECT_DURATION_TICKS.get(), effect.amplifier, true, true));
+            if(dist > maxSearchRange){
+                continue;
+            }
+            for(EffectConduitRecipe.ConduitEffect effect : selectedRecipe.recipe.outEffects()){
+                player.addEffect(new MobEffectInstance(effect.effect(), ServerConfig.CONDUIT_EFFECT_DURATION_TICKS.get(), effect.amplifier(), true, true));
             }
         }
     }

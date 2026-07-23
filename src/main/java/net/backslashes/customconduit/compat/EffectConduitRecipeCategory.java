@@ -105,25 +105,20 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
         int textColor = 0xFFFFFF;
 
         // Effects.
-        double minRange = Double.MAX_VALUE;
-        double maxRange = 0.0;
         for(int i=0; i<recipe.outEffects().size(); ++i){
             var effect = recipe.outEffects().get(i);
             int y = 27 + 11 * i;
             guiGraphics.drawString(font, effectAmplifierToString(effect.amplifier()), 115, y, textColor);
             guiGraphics.drawString(font, effect.effect().value().getDisplayName(), 129, y, textColor);
-            minRange = Math.min(minRange, effect.minRange());
-            maxRange = Math.max(maxRange, effect.maxRange());
         }
 
         guiGraphics.drawString(font, "5x5", 26, 32, textColor);
 
         // Frame counts.
-        int minBlockCount = recipe.minFrameBlockCount();
-        int maxBlockCount = recipe.maxFrameBlockCount();
         for(int i=0; i<4; ++i){
-            int blockCount = (int) Math.ceil(MathUtil.lerpf(minBlockCount, maxBlockCount, i/3.0f));
-            int range = Math.round(MathUtil.lerpf((float)minRange, (float)maxRange, i/3.0f));
+            EffectConduitRecipe.ConduitTier tier = recipe.tiers().get(i);
+            int blockCount = tier.frameBlockThreshold();
+            int range = tier.effectRange();
             int y = 48 + 12 * i;
             guiGraphics.drawCenteredString(font, blockCountToString(blockCount), 26, y, textColor);
             guiGraphics.drawCenteredString(font, blockCountToString(range), 52, y, textColor);

@@ -54,17 +54,14 @@ public class ModRecipes {
             super.buildRecipes(output);
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
                 "Example 1",
-                16,
-                42,
-                200,
-                Ingredient.of(ItemTags.COALS),
-                Ingredient.of(Items.GOLD_BLOCK),
+                    EffectConduitRecipe.ConduitTier.DEFAULT_TIERS,
+                1200,
+                Ingredient.of(Items.GLOW_BERRIES),
+                Ingredient.of(Items.GLASS),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(
                         MobEffects.GLOWING,
-                        0,
-                        16.0,
-                        64.0
+                        0
                     )
                 ),
                 new MathUtil.RgbColor(1.0f, 0.8f, 0.3f)
@@ -72,17 +69,18 @@ public class ModRecipes {
 
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
                 "Example 2",
-                16,
-                42,
-                1600,
+                    EffectConduitRecipe.ConduitTier.DEFAULT_TIERS,
+                1200,
                 Ingredient.EMPTY,
                 Ingredient.of(Items.IRON_BLOCK),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(
                         MobEffects.MOVEMENT_SPEED,
-                        1,
-                        16.0,
-                        64.0
+                        1
+                    ),
+                    new EffectConduitRecipe.ConduitEffect(
+                        MobEffects.DIG_SPEED,
+                        1
                     )
                 ),
                 new MathUtil.RgbColor(0.4f, 0.8f, 1.0f)
