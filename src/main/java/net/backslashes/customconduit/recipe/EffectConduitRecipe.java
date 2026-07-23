@@ -3,12 +3,10 @@ package net.backslashes.customconduit.recipe;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.backslashes.customconduit.MathUtil;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffect;
@@ -16,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -25,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 public record EffectConduitRecipe(
+        int frameSize,
         String displayName,
-        List<ConduitTier> tiers,
+//        List<ConduitTier> tiers,
         int fuelBurnTime,
         Ingredient fuelIngredient,
         Ingredient frameBlockIngredient,
@@ -37,11 +35,35 @@ public record EffectConduitRecipe(
         int frameBlockThreshold,
         int effectRange
     ) {
-        public static List<ConduitTier> DEFAULT_TIERS = List.of(
+        public static List<List<ConduitTier>> DEFAULT_TIERS = List.of(
+            // Size=0, frame=3x3.
+            List.of(
+                new ConduitTier(8, 16),
+                new ConduitTier(12, 32),
+                new ConduitTier(16, 64),
+                new ConduitTier(20, 96)
+            ),
+            // Size=1, frame=5x5.
+            List.of(
                 new ConduitTier(16, 16),
                 new ConduitTier(24, 32),
                 new ConduitTier(32, 64),
                 new ConduitTier(44, 96)
+            ),
+            // Size=2, frame=7x7.
+            List.of(
+                new ConduitTier(24, 16),
+                new ConduitTier(36, 32),
+                new ConduitTier(48, 64),
+                new ConduitTier(68, 96)
+            ),
+            // Size=3, frame=9x9.
+            List.of(
+                new ConduitTier(32, 16),
+                new ConduitTier(50, 32),
+                new ConduitTier(68, 64),
+                new ConduitTier(92, 96)
+            )
         );
         public static final Codec<ConduitTier> CODEC = RecordCodecBuilder.create(inst -> inst.group(
                 Codec.INT.fieldOf("frameThreshold").forGetter(ConduitTier::frameBlockThreshold),
@@ -88,6 +110,11 @@ public record EffectConduitRecipe(
             }
         };
     }
+
+    public List<ConduitTier> getTiers(){
+        return ConduitTier.DEFAULT_TIERS.get(this.frameSize());
+    }
+
     @Override
     public @NotNull NonNullList<Ingredient> getIngredients() {
         // NonNullList.of doesn't work here. Not sure why, don't care enough to find out.
@@ -140,8 +167,15 @@ public record EffectConduitRecipe(
 
     public static class EffectConduitRecipeSerializer implements RecipeSerializer<EffectConduitRecipe> {
         public static final MapCodec<EffectConduitRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+                Codec.INT.optionalFieldOf("frameSize", 1).validate((Integer s) -> {
+                    int maxSize = ConduitTier.DEFAULT_TIERS.size() - 1;
+                    if(s >= 0 && s <= maxSize){
+                        return DataResult.success(s);
+                    }
+                    return DataResult.error(() -> "Size must be between 0 and " + maxSize);
+                }).forGetter(EffectConduitRecipe::frameSize),
                 Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
-                ConduitTier.CODEC.listOf(4,4).optionalFieldOf("tiers", ConduitTier.DEFAULT_TIERS).forGetter(EffectConduitRecipe::tiers),
+//                ConduitTier.CODEC.listOf(4,4).optionalFieldOf("tiers", ConduitTier.DEFAULT_TIERS).forGetter(EffectConduitRecipe::tiers),
                 Codec.INT.optionalFieldOf("fuelBurnTime", 1600).forGetter(EffectConduitRecipe::fuelBurnTime),
                 Ingredient.CODEC_NONEMPTY.optionalFieldOf("fuel", Ingredient.EMPTY).forGetter(EffectConduitRecipe::fuelIngredient),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
@@ -165,12 +199,13 @@ public record EffectConduitRecipe(
 
         private static EffectConduitRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             String displayName = ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).decode(buffer);
-            int tierCount = buffer.readInt();
-            List<ConduitTier> tiers = new ArrayList<>();
-            for(int i=0; i<tierCount; ++i){
-                ConduitTier tier = ConduitTier.STREAM_CODEC.decode(buffer);
-                tiers.add(tier);
-            }
+            int frameSize = buffer.readInt();
+//            int tierCount = buffer.readInt();
+//            List<ConduitTier> tiers = new ArrayList<>();
+//            for(int i=0; i<tierCount; ++i){
+//                ConduitTier tier = ConduitTier.STREAM_CODEC.decode(buffer);
+//                tiers.add(tier);
+//            }
             int fuelBurnTime = buffer.readInt();
             Ingredient fuelIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
@@ -182,8 +217,9 @@ public record EffectConduitRecipe(
             }
             MathUtil.RgbColor color = MathUtil.RgbColor.STREAM_CODEC.decode(buffer);
             return new EffectConduitRecipe(
+                    frameSize,
                     displayName,
-                    tiers,
+//                    tiers,
                     fuelBurnTime,
                     fuelIngredient,
                     frameBlockIngredient,
@@ -194,10 +230,11 @@ public record EffectConduitRecipe(
 
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
             ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).encode(buffer, recipe.displayName);
-            buffer.writeInt(recipe.tiers.size());
-            for(ConduitTier tier : recipe.tiers){
-                ConduitTier.STREAM_CODEC.encode(buffer, tier);
-            }
+            buffer.writeInt(recipe.frameSize);
+//            buffer.writeInt(recipe.tiers.frameSize());
+//            for(ConduitTier tier : recipe.tiers){
+//                ConduitTier.STREAM_CODEC.encode(buffer, tier);
+//            }
             buffer.writeInt(recipe.fuelBurnTime);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.fuelIngredient);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);

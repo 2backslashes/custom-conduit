@@ -112,11 +112,12 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
             guiGraphics.drawString(font, effect.effect().value().getDisplayName(), 129, y, textColor);
         }
 
-        guiGraphics.drawString(font, "5x5", 26, 32, textColor);
+        int frameDiameter = (recipe.frameSize() + 1) * 2 + 1;
+        guiGraphics.drawString(font, frameDiameter + "x" + frameDiameter, 26, 32, textColor);
 
         // Frame counts.
         for(int i=0; i<4; ++i){
-            EffectConduitRecipe.ConduitTier tier = recipe.tiers().get(i);
+            EffectConduitRecipe.ConduitTier tier = EffectConduitRecipe.ConduitTier.DEFAULT_TIERS.get(recipe.frameSize()).get(i);
             int blockCount = tier.frameBlockThreshold();
             int range = tier.effectRange();
             int y = 48 + 12 * i;

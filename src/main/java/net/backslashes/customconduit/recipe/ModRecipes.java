@@ -53,8 +53,8 @@ public class ModRecipes {
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+                    0,
                 "Example 1",
-                    EffectConduitRecipe.ConduitTier.DEFAULT_TIERS,
                 1200,
                 Ingredient.of(Items.GLOW_BERRIES),
                 Ingredient.of(Items.GLASS),
@@ -68,8 +68,8 @@ public class ModRecipes {
             )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_1"));
 
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
+                    1,
                 "Example 2",
-                    EffectConduitRecipe.ConduitTier.DEFAULT_TIERS,
                 1200,
                 Ingredient.EMPTY,
                 Ingredient.of(Items.IRON_BLOCK),

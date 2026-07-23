@@ -348,7 +348,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 0;
         }
 
-        var tiers = selectedRecipe.recipe.tiers();
+        var tiers = selectedRecipe.recipe.getTiers();
         for(int i=tiers.size()-1; i>=0; --i){
             if(validFrameBlocks.size() >= tiers.get(i).frameBlockThreshold()){
                 return i + 1;
@@ -420,7 +420,8 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
 
         HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
-        iterFrameBlocks(center, 2, 2, 2, (pos) -> {
+        int radius = selectedRecipe.recipe.frameSize() + 1;
+        iterFrameBlocks(center, radius, radius, radius, (pos) -> {
             Block block = level.getBlockState(pos).getBlock();
             List<BlockPos> blocksOfType = frameBlocksByType.get(block);
             if(blocksOfType == null){
@@ -478,7 +479,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         assert selectedRecipe != null;
         assert level != null;
 
-        int maxSearchRange = selectedRecipe.recipe.tiers().get(this.activeLevel-1).effectRange();
+        int maxSearchRange = selectedRecipe.recipe.getTiers().get(this.activeLevel-1).effectRange();
         int j = maxSearchRange / 7 * 16;
         int k = pos.getX();
         int l = pos.getY();
