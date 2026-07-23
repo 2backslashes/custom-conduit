@@ -28,7 +28,7 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
     private static final ResourceLocation BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/jei_bg.png");
     private static final ResourceLocation FUEL_BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/jei_fuel.png");
     private static final int BG_WIDTH = 176;
-    private static final int BG_HEIGHT = 94;
+    private static final int BG_HEIGHT = 100;
     public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, ModRecipes.EFFECT_CONDUIT_RECIPE_ID);
     public static final RecipeType<EffectConduitRecipe> EFFECT_CONDUIT_RECIPE_TYPE = new RecipeType<>(UID, EffectConduitRecipe.class);
 
@@ -58,19 +58,34 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
     public void setRecipe(IRecipeLayoutBuilder builder, EffectConduitRecipe recipe, @NotNull IFocusGroup focuses) {
         var ingredients = recipe.getIngredients();
         // Frame.
-        builder.addSlot(RecipeIngredientRole.INPUT, 42, 21).addIngredients(ingredients.get(0));
+        builder.addSlot(RecipeIngredientRole.INPUT, 8, 28).addIngredients(ingredients.get(0));
+
+        // Fuel.
         if(!recipe.fuelIngredient().isEmpty()){
-            builder.addSlot(RecipeIngredientRole.INPUT, 67, 34).addIngredients(ingredients.get(1));
+            builder.addSlot(RecipeIngredientRole.INPUT, 80, 28).addIngredients(ingredients.get(1));
         }
     }
 
     public static String effectAmplifierToString(int amplifier){
-        final String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
+        final String[] numerals = {"I", "II", "III", "IV", "V", "VI"};
         if(amplifier < numerals.length){
             return numerals[amplifier];
         }
 
-        return Integer.toString(amplifier + 1);
+        return "x" +(amplifier + 1);
+    }
+
+    private String blockCountToString(int count){
+        if(count >= 100000){
+            return "???";
+        }
+        if(count >= 10000){
+            return (count / 1000) + "k";
+        }
+        if(count >= 1000){
+            return (count / 1000) + "." + ((count % 1000) / 100) + "k";
+        }
+        return Integer.toString(count);
     }
 
     @Override
@@ -88,20 +103,20 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
         guiGraphics.drawCenteredString(font, recipe.displayName(), 87, 7, recipe.color().toHexArgb());
 
         int textColor = 0xFFFFFF;
-        guiGraphics.drawString(font, "Frame:", 7, 24, textColor);
 
         // Effects.
         double minRange = Double.MAX_VALUE;
         double maxRange = 0.0;
-        guiGraphics.drawString(font, "Effects", 118, 22, textColor);
         for(int i=0; i<recipe.outEffects().size(); ++i){
             var effect = recipe.outEffects().get(i);
-            int y = 34 + 11 * i;
-            guiGraphics.drawString(font, effectAmplifierToString(effect.amplifier()), 118, y, textColor);
-            guiGraphics.drawString(font, effect.effect().value().getDisplayName(), 132, y, textColor);
+            int y = 27 + 11 * i;
+            guiGraphics.drawString(font, effectAmplifierToString(effect.amplifier()), 115, y, textColor);
+            guiGraphics.drawString(font, effect.effect().value().getDisplayName(), 129, y, textColor);
             minRange = Math.min(minRange, effect.minRange());
             maxRange = Math.max(maxRange, effect.maxRange());
         }
+
+        guiGraphics.drawString(font, "5x5", 26, 32, textColor);
 
         // Frame counts.
         int minBlockCount = recipe.minFrameBlockCount();
@@ -109,15 +124,15 @@ public class EffectConduitRecipeCategory implements IRecipeCategory<EffectCondui
         for(int i=0; i<4; ++i){
             int blockCount = (int) Math.ceil(MathUtil.lerpf(minBlockCount, maxBlockCount, i/3.0f));
             int range = Math.round(MathUtil.lerpf((float)minRange, (float)maxRange, i/3.0f));
-            guiGraphics.drawString(font, Integer.toString(blockCount), 19, 42 + 12 * i, textColor);
-            guiGraphics.drawString(font, Integer.toString(range), 46, 42 + 12 * i, textColor);
+            int y = 48 + 12 * i;
+            guiGraphics.drawCenteredString(font, blockCountToString(blockCount), 26, y, textColor);
+            guiGraphics.drawCenteredString(font, blockCountToString(range), 52, y, textColor);
         }
 
         // Fuel.
         if(!recipe.fuelIngredient().isEmpty()){
-            guiGraphics.blit(FUEL_BG_TEXTURE, 65, 20, 0.0f, 0.0f, 49, 69, 49, 69);
-            guiGraphics.drawCenteredString(font, "Fuel", 89, 22, textColor);
-            guiGraphics.drawString(font, recipe.fuelBurnTime() + "t", 85, 39, textColor);
+            guiGraphics.blit(FUEL_BG_TEXTURE, 65, 19, 0.0f, 0.0f, 46, 38, 46, 38);
+            guiGraphics.drawCenteredString(font, recipe.fuelBurnTime() + "t", 87, 46, textColor);
         }
     }
 
