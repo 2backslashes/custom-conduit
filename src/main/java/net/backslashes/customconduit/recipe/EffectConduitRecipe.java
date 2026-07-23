@@ -39,9 +39,9 @@ public record EffectConduitRecipe(
     ) {
         public static List<ConduitTier> DEFAULT_TIERS = List.of(
                 new ConduitTier(16, 16),
-                new ConduitTier(24, 48),
+                new ConduitTier(24, 32),
                 new ConduitTier(32, 64),
-                new ConduitTier(42, 96)
+                new ConduitTier(44, 96)
         );
         public static final Codec<ConduitTier> CODEC = RecordCodecBuilder.create(inst -> inst.group(
                 Codec.INT.fieldOf("frameThreshold").forGetter(ConduitTier::frameBlockThreshold),

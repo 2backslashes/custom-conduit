@@ -16,6 +16,7 @@ import net.backslashes.customconduit.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -44,6 +45,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static net.backslashes.customconduit.MathUtil.iterFrameBlocks;
 
 public class EffectConduitBlockEntity extends BlockEntity implements MenuProvider , IItemHandler {
     @Override
@@ -417,7 +420,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
 
         HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
-        iterFrameCandidates(center, (pos) -> {
+        iterFrameBlocks(center, 2, 2, 2, (pos) -> {
             Block block = level.getBlockState(pos).getBlock();
             List<BlockPos> blocksOfType = frameBlocksByType.get(block);
             if(blocksOfType == null){
@@ -471,21 +474,6 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
-    private static void iterFrameCandidates(BlockPos pos, Consumer<BlockPos> consumer){
-        for(int j1 = -2; j1 <= 2; ++j1) {
-            for(int k1 = -2; k1 <= 2; ++k1) {
-                for (int l1 = -2; l1 <= 2; ++l1) {
-                    int i2 = Math.abs(j1);
-                    int l = Math.abs(k1);
-                    int i1 = Math.abs(l1);
-                    if ((j1 == 0 && (l == 2 || i1 == 2) || k1 == 0 && (i2 == 2 || i1 == 2) || l1 == 0 && (i2 == 2 || l == 2))) {
-                        consumer.accept(pos.offset(j1, k1, l1));
-                    }
-                }
-            }
-        }
-    }
-
     private void applyEffects(BlockPos pos) {
         assert selectedRecipe != null;
         assert level != null;
@@ -518,9 +506,11 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         d0 = (d0 * d0 + d0) * (double)0.3F;
         Vec3 vec3 = new Vec3((double)pos.getX() + (double)0.5F, (double)pos.getY() + (double)1.5F + d0, (double)pos.getZ() + (double)0.5F);
 
+
         if(!isActive()){
             return;
         }
+
         for(BlockPos blockpos : validFrameBlocks) {
             if (randomsource.nextInt(100) == 0) {
                 level.addParticle(

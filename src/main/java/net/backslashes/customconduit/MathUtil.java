@@ -2,11 +2,14 @@ package net.backslashes.customconduit;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffect;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 public class MathUtil {
     public static float lerpf(float a, float b, float x) {
@@ -66,4 +69,35 @@ public class MathUtil {
         }
     }
 
+    // Radius=1 denotes a 3-wide frame.
+    public static void iterFrameBlocks(BlockPos pos, int xRadius, int yRadius, int zRadius, Consumer<BlockPos> consumer){
+        int[] signs = {-1, 1};
+
+        // Vertical columns.
+        for(int x : signs){
+            for(int z : signs){
+                for(int y=-yRadius; y<=yRadius; ++y){
+                    consumer.accept(pos.offset(x * xRadius,y,z * zRadius));
+                }
+            }
+        }
+
+        // X cross-beams.
+        for(int y : signs){
+            for(int z : signs){
+                for(int x=-xRadius+1; x<=xRadius-1; ++x){
+                    consumer.accept(pos.offset(x,y * yRadius,z * zRadius));
+                }
+            }
+        }
+
+        // Z cross-beams.
+        for(int y : signs){
+            for(int x : signs){
+                for(int z=-zRadius+1; z<=zRadius-1; ++z){
+                    consumer.accept(pos.offset(x * xRadius,y * yRadius,z));
+                }
+            }
+        }
+    }
 }
