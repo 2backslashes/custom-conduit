@@ -23,30 +23,21 @@ import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntit
 
 public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     private static final ResourceLocation BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_bg.png");
-    private static final ResourceLocation CORNER_TEXTURE_BOTTOM_LEFT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_bottom_left.png");
-    private static final ResourceLocation CORNER_TEXTURE_BOTTOM_RIGHT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_bottom_right.png");
-    private static final ResourceLocation CORNER_TEXTURE_TOP_LEFT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_top_left.png");
-    private static final ResourceLocation CORNER_TEXTURE_TOP_RIGHT = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_corner_top_right.png");
+    private static final ResourceLocation BG_TEXTURE_EMPTY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_bg_empty.png");
     private static final ResourceLocation FUEL_TEXTURE_EMPTY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_empty.png");
     private static final ResourceLocation FUEL_TEXTURE_FULL = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_full.png");
 
+    private final List<EffectConduitRecipe> recipes;
     public ConduitScreen(ConduitMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+        recipes = playerInventory.player.level().getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get()).stream().map(RecipeHolder::value).toList();
+        imageWidth = 176;
+        imageHeight = 180;
     }
 
     @Override
     protected void init() {
         super.init();
-        RecipesMenu recipesMenu = new RecipesMenu(
-                this,
-                this.minecraft,
-                79,
-                76,
-                (height - imageHeight) / 2 + 5,
-                (width - imageWidth) / 2 + 8
-        );
-
-        this.addRenderableWidget(recipesMenu);
     }
 
     @Override
@@ -60,35 +51,30 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         RenderSystem.setShaderTexture(0, BG_TEXTURE);
 
-        int x = (width - imageWidth)/2;
-        int y = (height - imageHeight)/2;
-        guiGraphics.blit(BG_TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
+        int baseX = (width - imageWidth)/2;
+        int baseY = (height - imageHeight)/2;
 
         // Frame activation level.
-        int frameLevel = this.menu.conduitData.get(DATA_FRAME_PROGRESS);
-        if(frameLevel >= 1){
-            RenderSystem.setShaderTexture(0, CORNER_TEXTURE_BOTTOM_LEFT);
-            guiGraphics.blit(CORNER_TEXTURE_BOTTOM_LEFT, x + 93, y + 45, 0.0f, 0.0f, 35, 35, 35, 35);
-        }
-        if(frameLevel >= 2){
-            guiGraphics.blit(CORNER_TEXTURE_BOTTOM_RIGHT, x + 131, y + 45, 0.0f, 0.0f, 35, 35, 35, 35);
-        }
-        if(frameLevel >= 3){
-            guiGraphics.blit(CORNER_TEXTURE_TOP_LEFT, x + 93, y + 7, 0.0f, 0.0f, 35, 35, 35, 35);
-        }
-        if(frameLevel >= 4){
-            guiGraphics.blit(CORNER_TEXTURE_TOP_RIGHT, x + 131, y + 7, 0.0f, 0.0f, 35, 35, 35, 35);
+        int selectedRecipeIndex = this.menu.conduitData.get(DATA_SELECTED_RECIPE);
+        if(selectedRecipeIndex >= 0){
+            guiGraphics.blit(BG_TEXTURE, baseX, baseY, 0.0f, 0.0f, imageWidth, imageHeight, imageWidth, imageHeight);
+            EffectConduitRecipe recipe = this.recipes.get(selectedRecipeIndex);
+            int frameLevel = this.menu.conduitData.get(DATA_FRAME_PROGRESS);
+            ConduitScreenBase.draw(recipe, guiGraphics, frameLevel, baseX, baseY);
+        } else {
+            guiGraphics.blit(BG_TEXTURE_EMPTY, baseX, baseY, 0.0f, 0.0f, imageWidth, imageHeight, imageWidth, imageHeight);
+            ConduitScreenBase.drawTitle(guiGraphics, "select...", 0xFFFFFFFF, baseX, baseY);
         }
 
         // Fuel.
         int fuelMax = this.menu.conduitData.get(DATA_FUEL_TIMER_MAX);
         if(fuelMax > 0){
-            guiGraphics.blit(FUEL_TEXTURE_EMPTY, x+122, y+14, 0.0f, 0.0f, 15, 15, 15, 15);
+            guiGraphics.blit(FUEL_TEXTURE_EMPTY, baseX+122, baseY+14, 0.0f, 0.0f, 15, 15, 15, 15);
 
             int fuelRemaining = this.menu.conduitData.get(DATA_FUEL_REMAINING_TICKS);
             if(fuelRemaining > 0){
                 int progressOffset = (int)((1.0 - (float)fuelRemaining / fuelMax) * 15);
-                guiGraphics.blit(FUEL_TEXTURE_FULL, x+122, y+14+progressOffset, 0.0f, progressOffset, 15, 15-progressOffset, 15, 15);
+                guiGraphics.blit(FUEL_TEXTURE_FULL, baseX+122, baseY+14+progressOffset, 0.0f, progressOffset, 15, 15-progressOffset, 15, 15);
             }
         }
     }
