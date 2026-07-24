@@ -53,11 +53,11 @@ public class ModRecipes {
         protected void buildRecipes(RecipeOutput output) {
             super.buildRecipes(output);
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
-                    0,
+                    1,
                 "Example 1",
                 1200,
                 Ingredient.of(Items.GLOW_BERRIES),
-                Ingredient.of(Items.GLASS),
+                Ingredient.of(Items.GLASS, Items.GLOWSTONE, Items.SHROOMLIGHT),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(
                         MobEffects.GLOWING,

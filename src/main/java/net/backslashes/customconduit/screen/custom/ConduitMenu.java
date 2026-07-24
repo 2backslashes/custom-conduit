@@ -25,7 +25,7 @@ public class ConduitMenu extends AbstractContainerMenu {
     public final BlockPos pos;
     public final ContainerData conduitData;
     private final Level level;
-    private final int fuelSlot;
+    private final Slot fuelSlot;
 
     public ConduitMenu(int containerId, Inventory inv, BlockPos pos, ItemStackHandler containerInv, ContainerData conduitData){
         super(ModMenuTypes.CONDUIT_MENU.get(), containerId);
@@ -33,12 +33,11 @@ public class ConduitMenu extends AbstractContainerMenu {
         this.pos = pos;
 
         this.level = inv.player.level();
-        this.fuelSlot = this.slots.size();
 
         addPlayerInventory(inv);
 
-        this.addSlot(new SlotItemHandler(containerInv, 0, ConduitScreenBase.FUEL_SLOT_X, ConduitScreenBase.FUEL_SLOT_Y));
-        this.addDataSlots(conduitData);
+        fuelSlot = addSlot(new SlotItemHandler(containerInv, 0, ConduitScreenBase.FUEL_SLOT_X, ConduitScreenBase.FUEL_SLOT_Y));
+        addDataSlots(conduitData);
     }
 
     @Override
