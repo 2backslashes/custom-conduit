@@ -137,7 +137,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
                 return false;
             }
             if(this.screen.minecraft != null && this.screen.minecraft.gameMode != null) {
-                if(mouseX >= this.left && mouseX <= this.left + 86){
+                if(mouseX >= this.left && mouseX <= this.left + 86 && mouseY >= this.top && mouseY <= this.bottom){
                     int id = (int) (mouseY - this.top + this.scrollDistance) / RECIPE_ENTRY_HEIGHT;
                     if (id >= 0 && id < recipes.size()) {
                         this.screen.minecraft.gameMode.handleInventoryButtonClick(this.screen.menu.containerId, id);

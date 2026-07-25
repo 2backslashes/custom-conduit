@@ -230,14 +230,14 @@ public class ModRecipes {
                         0
                     ),
                     new EffectConduitRecipe.ConduitEffect(
-                        MobEffects.MOVEMENT_SPEED,
-                            20
+                        MobEffects.JUMP,
+                            49
                     )
                 ),
-                new MathUtil.RgbColor(0.3f, 0.4f,0.0f),
+                new MathUtil.RgbColor(0.2f, 0.25f,0.0f),
                     true,
                     false,
-                    true
+                    false
             )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "fools_regret"));
 
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
@@ -246,7 +246,7 @@ public class ModRecipes {
                     EffectConduitRecipe.ConduitTier.DEFAULT_TIERS.get(1),
                 0,
                 Ingredient.EMPTY,
-                Ingredient.of(Items.NETHER_BRICK, Items.RED_NETHER_BRICKS),
+                Ingredient.of(Items.NETHER_BRICKS, Items.RED_NETHER_BRICKS),
                 List.of(
                     new EffectConduitRecipe.ConduitEffect(
                         MobEffects.DAMAGE_BOOST,
@@ -276,7 +276,7 @@ public class ModRecipes {
                         0
                     )
                 ),
-                new MathUtil.RgbColor(0.7f, 0.7f,0.7f),
+                new MathUtil.RgbColor(0.85f, 0.9f,0.7f),
                     true,
                     true,
                     true

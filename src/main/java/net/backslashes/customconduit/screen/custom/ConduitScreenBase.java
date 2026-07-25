@@ -26,7 +26,7 @@ public class ConduitScreenBase {
             return numerals[amplifier];
         }
 
-        return "x" +(amplifier + 1);
+        return Integer.toString(amplifier + 1);
     }
 
     private static String blockCountToString(int count){
