@@ -27,7 +27,6 @@ import static net.backslashes.customconduit.block.entity.EffectConduitBlockEntit
 public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     private static final ResourceLocation BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_bg.png");
     private static final ResourceLocation BG_TEXTURE_EMPTY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_bg_empty.png");
-    private static final ResourceLocation FUEL_TEXTURE_EMPTY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_empty.png");
     private static final ResourceLocation FUEL_TEXTURE_FULL = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/conduit_fuel_full.png");
 
     private float tickCounter;

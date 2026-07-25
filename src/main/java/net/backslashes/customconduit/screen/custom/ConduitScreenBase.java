@@ -1,11 +1,17 @@
 package net.backslashes.customconduit.screen.custom;
 
+import net.backslashes.customconduit.CustomConduit;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 
 public class ConduitScreenBase {
+    private static final ResourceLocation ICON_PLAYER = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/icon_player.png");
+    private static final ResourceLocation ICON_ENEMY = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/icon_enemy.png");
+    private static final ResourceLocation ICON_ANIMAL = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/icon_animal.png");
+
     public static int TEXT_COLOR = 0xFFFFFF;
     public static Font FONT = Minecraft.getInstance().font;
     public static int BG_COLOR = 0xBEC3ED;
@@ -46,9 +52,20 @@ public class ConduitScreenBase {
         // Effects.
         for(int i=0; i<recipe.outEffects().size(); ++i){
             var effect = recipe.outEffects().get(i);
-            int y = baseY + 27 + 11 * i;
+            int y = baseY + 39 + 11 * i;
             guiGraphics.drawString(FONT, effectAmplifierToString(effect.amplifier()), baseX + 115, y, TEXT_COLOR);
             guiGraphics.drawString(FONT, effect.effect().value().getDisplayName(), baseX + 129, y, TEXT_COLOR);
+        }
+
+        // Effect targets.
+        if(recipe.targetPlayers()){
+            guiGraphics.blit(ICON_PLAYER, baseX + 116, baseY + 28, 0.0f, 0.0f, 8, 8, 8, 8);
+        }
+        if(recipe.targetAnimals()){
+            guiGraphics.blit(ICON_ANIMAL, baseX + 125, baseY + 28, 0.0f, 0.0f, 8, 8, 8, 8);
+        }
+        if(recipe.targetEnemies()){
+            guiGraphics.blit(ICON_ENEMY, baseX + 134, baseY + 28, 0.0f, 0.0f, 8, 8, 8, 8);
         }
 
         // Frame ingredient.

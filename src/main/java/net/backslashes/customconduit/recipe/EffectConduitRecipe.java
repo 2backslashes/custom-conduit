@@ -31,8 +31,8 @@ public record EffectConduitRecipe(
         List<ConduitEffect> outEffects,
         MathUtil.RgbColor color,
         Boolean targetPlayers,
-        Boolean targetEnemies,
-        Boolean targetAnimals
+        Boolean targetAnimals,
+        Boolean targetEnemies
 ) implements Recipe<EffectConduitRecipeInput> {
     public static int TIER_COUNT = 4;
     public record ConduitTier(
@@ -224,8 +224,8 @@ public record EffectConduitRecipe(
             MathUtil.RgbColor color = MathUtil.RgbColor.STREAM_CODEC.decode(buffer);
 
             Boolean targetPlayers = buffer.readBoolean();
-            Boolean targetEnemies = buffer.readBoolean();
             Boolean targetAnimals = buffer.readBoolean();
+            Boolean targetEnemies = buffer.readBoolean();
 
             return new EffectConduitRecipe(
                     displayName,
@@ -237,8 +237,8 @@ public record EffectConduitRecipe(
                     effects,
                     color,
                     targetPlayers,
-                    targetEnemies,
-                    targetAnimals
+                    targetAnimals,
+                    targetEnemies
             );
         }
 
@@ -257,8 +257,8 @@ public record EffectConduitRecipe(
             }
             MathUtil.RgbColor.STREAM_CODEC.encode(buffer, recipe.color);
             buffer.writeBoolean(recipe.targetPlayers);
-            buffer.writeBoolean(recipe.targetEnemies);
             buffer.writeBoolean(recipe.targetAnimals);
+            buffer.writeBoolean(recipe.targetEnemies);
         }
     }
 }
