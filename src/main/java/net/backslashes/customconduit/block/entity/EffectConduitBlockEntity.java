@@ -29,6 +29,9 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -485,14 +488,29 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         int l = pos.getY();
         int i1 = pos.getZ();
         AABB aabb = (new AABB(k, l, i1, (k + 1), (l + 1), (i1 + 1))).inflate(j).expandTowards(0.0F, level.getHeight(), 0.0F);
-        List<Player> players = level.getEntitiesOfClass(Player.class, aabb);
-        for(Player player : players){
-            double dist = player.position().distanceTo(pos.getCenter());
+        List<LivingEntity> entities = level.getEntitiesOfClass(LivingEntity.class, aabb);
+        for(LivingEntity entity : entities){
+            boolean shouldTarget = false;
+            if(selectedRecipe.recipe.targetPlayers() && entity instanceof Player){
+                shouldTarget = true;
+            }
+            if(selectedRecipe.recipe.targetAnimals() && entity instanceof Animal){
+                shouldTarget = true;
+            }
+            if(selectedRecipe.recipe.targetEnemies() && entity instanceof Enemy){
+                shouldTarget = true;
+            }
+
+            if(!shouldTarget){
+                continue;
+            }
+
+            double dist = entity.position().distanceTo(pos.getCenter());
             if(dist > maxSearchRange){
                 continue;
             }
             for(EffectConduitRecipe.ConduitEffect effect : selectedRecipe.recipe.outEffects()){
-                player.addEffect(new MobEffectInstance(effect.effect(), ServerConfig.CONDUIT_EFFECT_DURATION_TICKS.get(), effect.amplifier(), true, true));
+                entity.addEffect(new MobEffectInstance(effect.effect(), ServerConfig.CONDUIT_EFFECT_DURATION_TICKS.get(), effect.amplifier(), true, true));
             }
         }
     }

@@ -64,7 +64,10 @@ public class ModRecipes {
                         0
                     )
                 ),
-                new MathUtil.RgbColor(1.0f, 0.8f, 0.3f)
+                new MathUtil.RgbColor(1.0f, 0.8f, 0.3f),
+                    true,
+                    true,
+                    true
             )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_1"));
 
             new EffectConduitRecipeBuilder(new EffectConduitRecipe(
@@ -83,7 +86,10 @@ public class ModRecipes {
                         1
                     )
                 ),
-                new MathUtil.RgbColor(0.4f, 0.8f, 1.0f)
+                new MathUtil.RgbColor(0.4f, 0.8f, 1.0f),
+                    true,
+                    false,
+                    false
             )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "example_2"));
         }
     }

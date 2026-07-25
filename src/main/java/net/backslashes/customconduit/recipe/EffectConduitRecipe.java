@@ -29,7 +29,10 @@ public record EffectConduitRecipe(
         Ingredient fuelIngredient,
         Ingredient frameBlockIngredient,
         List<ConduitEffect> outEffects,
-        MathUtil.RgbColor color
+        MathUtil.RgbColor color,
+        Boolean targetPlayers,
+        Boolean targetEnemies,
+        Boolean targetAnimals
 ) implements Recipe<EffectConduitRecipeInput> {
     public record ConduitTier(
         int frameBlockThreshold,
@@ -175,12 +178,14 @@ public record EffectConduitRecipe(
                     return DataResult.error(() -> "Size must be between 0 and " + maxSize);
                 }).forGetter(EffectConduitRecipe::frameSize),
                 Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
-//                ConduitTier.CODEC.listOf(4,4).optionalFieldOf("tiers", ConduitTier.DEFAULT_TIERS).forGetter(EffectConduitRecipe::tiers),
                 Codec.INT.optionalFieldOf("fuelBurnTime", 1600).forGetter(EffectConduitRecipe::fuelBurnTime),
                 Ingredient.CODEC_NONEMPTY.optionalFieldOf("fuel", Ingredient.EMPTY).forGetter(EffectConduitRecipe::fuelIngredient),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
                 ConduitEffect.CODEC.listOf(1, 255).fieldOf("effects").forGetter(EffectConduitRecipe::outEffects),
-                MathUtil.RgbColor.CODEC.optionalFieldOf("color", new MathUtil.RgbColor(1.0f, 1.0f, 1.0f)).forGetter(EffectConduitRecipe::color)
+                MathUtil.RgbColor.CODEC.optionalFieldOf("color", new MathUtil.RgbColor(1.0f, 1.0f, 1.0f)).forGetter(EffectConduitRecipe::color),
+                Codec.BOOL.fieldOf("targetPlayers").forGetter(EffectConduitRecipe::targetPlayers),
+                Codec.BOOL.fieldOf("targetAnimals").forGetter(EffectConduitRecipe::targetAnimals),
+                Codec.BOOL.fieldOf("targetEnemies").forGetter(EffectConduitRecipe::targetEnemies)
         ).apply(inst, EffectConduitRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, EffectConduitRecipe> STREAM_CODEC = StreamCodec.of(EffectConduitRecipeSerializer::toNetwork, EffectConduitRecipeSerializer::fromNetwork);
@@ -216,6 +221,11 @@ public record EffectConduitRecipe(
                 effects.add(effect);
             }
             MathUtil.RgbColor color = MathUtil.RgbColor.STREAM_CODEC.decode(buffer);
+
+            Boolean targetPlayers = buffer.readBoolean();
+            Boolean targetEnemies = buffer.readBoolean();
+            Boolean targetAnimals = buffer.readBoolean();
+
             return new EffectConduitRecipe(
                     frameSize,
                     displayName,
@@ -224,7 +234,10 @@ public record EffectConduitRecipe(
                     fuelIngredient,
                     frameBlockIngredient,
                     effects,
-                    color
+                    color,
+                    targetPlayers,
+                    targetEnemies,
+                    targetAnimals
             );
         }
 
@@ -243,6 +256,9 @@ public record EffectConduitRecipe(
                 ConduitEffect.STREAM_CODEC.encode(buffer, effect);
             }
             MathUtil.RgbColor.STREAM_CODEC.encode(buffer, recipe.color);
+            buffer.writeBoolean(recipe.targetPlayers);
+            buffer.writeBoolean(recipe.targetEnemies);
+            buffer.writeBoolean(recipe.targetAnimals);
         }
     }
 }
