@@ -22,9 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 public record EffectConduitRecipe(
-        int frameSize,
         String displayName,
-//        List<ConduitTier> tiers,
+        int frameSize,
+        List<ConduitTier> tiers,
         int fuelBurnTime,
         Ingredient fuelIngredient,
         Ingredient frameBlockIngredient,
@@ -34,6 +34,7 @@ public record EffectConduitRecipe(
         Boolean targetEnemies,
         Boolean targetAnimals
 ) implements Recipe<EffectConduitRecipeInput> {
+    public static int TIER_COUNT = 4;
     public record ConduitTier(
         int frameBlockThreshold,
         int effectRange
@@ -43,29 +44,29 @@ public record EffectConduitRecipe(
             List.of(
                 new ConduitTier(8, 16),
                 new ConduitTier(12, 32),
-                new ConduitTier(16, 64),
-                new ConduitTier(20, 96)
+                new ConduitTier(16, 48),
+                new ConduitTier(20, 64)
             ),
             // Size=1, frame=5x5.
             List.of(
                 new ConduitTier(16, 16),
                 new ConduitTier(24, 32),
-                new ConduitTier(32, 64),
-                new ConduitTier(44, 96)
+                new ConduitTier(32, 48),
+                new ConduitTier(44, 64)
             ),
             // Size=2, frame=7x7.
             List.of(
                 new ConduitTier(24, 16),
                 new ConduitTier(36, 32),
-                new ConduitTier(48, 64),
-                new ConduitTier(68, 96)
+                new ConduitTier(48, 48),
+                new ConduitTier(68, 64)
             ),
             // Size=3, frame=9x9.
             List.of(
                 new ConduitTier(32, 16),
                 new ConduitTier(50, 32),
-                new ConduitTier(68, 64),
-                new ConduitTier(92, 96)
+                new ConduitTier(68, 48),
+                new ConduitTier(92, 64)
             )
         );
         public static final Codec<ConduitTier> CODEC = RecordCodecBuilder.create(inst -> inst.group(
@@ -170,6 +171,7 @@ public record EffectConduitRecipe(
 
     public static class EffectConduitRecipeSerializer implements RecipeSerializer<EffectConduitRecipe> {
         public static final MapCodec<EffectConduitRecipe> CODEC = RecordCodecBuilder.mapCodec(inst -> inst.group(
+                Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
                 Codec.INT.optionalFieldOf("frameSize", 1).validate((Integer s) -> {
                     int maxSize = ConduitTier.DEFAULT_TIERS.size() - 1;
                     if(s >= 0 && s <= maxSize){
@@ -177,7 +179,7 @@ public record EffectConduitRecipe(
                     }
                     return DataResult.error(() -> "Size must be between 0 and " + maxSize);
                 }).forGetter(EffectConduitRecipe::frameSize),
-                Codec.STRING.fieldOf("displayName").forGetter(EffectConduitRecipe::displayName),
+                ConduitTier.CODEC.listOf(TIER_COUNT, TIER_COUNT).fieldOf("tiers").forGetter(EffectConduitRecipe::tiers),
                 Codec.INT.optionalFieldOf("fuelBurnTime", 1600).forGetter(EffectConduitRecipe::fuelBurnTime),
                 Ingredient.CODEC_NONEMPTY.optionalFieldOf("fuel", Ingredient.EMPTY).forGetter(EffectConduitRecipe::fuelIngredient),
                 Ingredient.CODEC_NONEMPTY.fieldOf("frameIngredient").forGetter(EffectConduitRecipe::frameBlockIngredient),
@@ -205,12 +207,11 @@ public record EffectConduitRecipe(
         private static EffectConduitRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
             String displayName = ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).decode(buffer);
             int frameSize = buffer.readInt();
-//            int tierCount = buffer.readInt();
-//            List<ConduitTier> tiers = new ArrayList<>();
-//            for(int i=0; i<tierCount; ++i){
-//                ConduitTier tier = ConduitTier.STREAM_CODEC.decode(buffer);
-//                tiers.add(tier);
-//            }
+            List<ConduitTier> tiers = new ArrayList<>();
+            for(int i=0; i<TIER_COUNT; ++i){
+                ConduitTier tier = ConduitTier.STREAM_CODEC.decode(buffer);
+                tiers.add(tier);
+            }
             int fuelBurnTime = buffer.readInt();
             Ingredient fuelIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
             Ingredient frameBlockIngredient = Ingredient.CONTENTS_STREAM_CODEC.decode(buffer);
@@ -227,9 +228,9 @@ public record EffectConduitRecipe(
             Boolean targetAnimals = buffer.readBoolean();
 
             return new EffectConduitRecipe(
-                    frameSize,
                     displayName,
-//                    tiers,
+                    frameSize,
+                    tiers,
                     fuelBurnTime,
                     fuelIngredient,
                     frameBlockIngredient,
@@ -244,10 +245,9 @@ public record EffectConduitRecipe(
         private static void toNetwork(RegistryFriendlyByteBuf buffer, EffectConduitRecipe recipe) {
             ByteBufCodecs.stringUtf8(DISPLAY_NAME_MAX_LENGTH).encode(buffer, recipe.displayName);
             buffer.writeInt(recipe.frameSize);
-//            buffer.writeInt(recipe.tiers.frameSize());
-//            for(ConduitTier tier : recipe.tiers){
-//                ConduitTier.STREAM_CODEC.encode(buffer, tier);
-//            }
+            for(ConduitTier tier : recipe.tiers){
+                ConduitTier.STREAM_CODEC.encode(buffer, tier);
+            }
             buffer.writeInt(recipe.fuelBurnTime);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.fuelIngredient);
             Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, recipe.frameBlockIngredient);
