@@ -52,8 +52,9 @@ public class JeiCustomConduitPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(@NotNull IGuiHandlerRegistration registration) {
         IModPlugin.super.registerGuiHandlers(registration);
-        // TODO:
-//        registration.addRecipeClickArea(ConduitScreen.class, x,y,w,h, EffectConduitRecipeCategory.EFFECT_CONDUIT_RECIPE_TYPE);
+        registration.addRecipeClickArea(ConduitScreen.class, 6,26, 56, 68, EffectConduitRecipeCategory.EFFECT_CONDUIT_RECIPE_TYPE);
+        registration.addRecipeClickArea(ConduitScreen.class, 114,26, 56, 68, EffectConduitRecipeCategory.EFFECT_CONDUIT_RECIPE_TYPE);
+        registration.addRecipeClickArea(ConduitScreen.class, 67,46, 42, 9, EffectConduitRecipeCategory.EFFECT_CONDUIT_RECIPE_TYPE);
     }
 
     @Override
