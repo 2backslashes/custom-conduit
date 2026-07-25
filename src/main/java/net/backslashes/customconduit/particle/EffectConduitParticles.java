@@ -24,6 +24,7 @@ public class EffectConduitParticles extends TextureSheetParticle {
     protected EffectConduitParticles(ClientLevel level, double x, double y, double z, SpriteSet spriteSet, Vec3 destination, MathUtil.RgbColor color) {
         super(level, x, y, z);
 
+        this.quadSize = 0.1f;
         this.spriteSet = spriteSet;
         this.friction = 0.9f;
         this.hasPhysics = false;
@@ -37,6 +38,9 @@ public class EffectConduitParticles extends TextureSheetParticle {
         this.xd = speed * (destination.x - x);
         this.yd = speed * (destination.y - y);
         this.zd = speed * (destination.z - z);
+
+        this.roll = (float) (Math.round(level.getRandom().nextFloat() * 4) * Math.PI / 2);
+        this.oRoll = this.roll;
     }
 
     @Override
