@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 
 import net.backslashes.customconduit.block.entity.EffectConduitBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -20,6 +21,9 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -29,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 public class EffectConduitBlock extends BaseEntityBlock {
     public static final MapCodec<EffectConduitBlock> CODEC = simpleCodec(EffectConduitBlock::new);
     protected static final VoxelShape SHAPE = Block.box(2.0F, 2.0F, 2.0F, 14.0F, 14.0, 14.0F);
+    public static final BooleanProperty DISABLED_BY_REDSTONE = BooleanProperty.create("disabled_by_redstone");
 
     @Override
     public @NotNull MapCodec<EffectConduitBlock> codec() {
@@ -37,6 +42,9 @@ public class EffectConduitBlock extends BaseEntityBlock {
 
     public EffectConduitBlock(BlockBehaviour.Properties properties) {
         super(properties);
+        this.registerDefaultState(this.stateDefinition.any()
+                .setValue(DISABLED_BY_REDSTONE, false)
+        );
     }
 
     @Override
@@ -92,6 +100,20 @@ public class EffectConduitBlock extends BaseEntityBlock {
             }
         }
         return ItemInteractionResult.SUCCESS;
+    }
+
+    protected void neighborChanged(BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
+        boolean receivingSignal = level.hasNeighborSignal(pos);
+        boolean currentlyDisabledByRedstone = state.getValue(DISABLED_BY_REDSTONE);
+        if (receivingSignal && !currentlyDisabledByRedstone) {
+            level.setBlock(pos, state.setValue(DISABLED_BY_REDSTONE, true), 2);
+        } else if (!receivingSignal && currentlyDisabledByRedstone) {
+            level.setBlock(pos, state.setValue(DISABLED_BY_REDSTONE, false), 2);
+        }
+    }
+
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(DISABLED_BY_REDSTONE);
     }
 
     protected boolean hasAnalogOutputSignal(@NotNull BlockState state) {

@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 import net.backslashes.customconduit.ServerConfig;
+import net.backslashes.customconduit.block.EffectConduitBlock;
 import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.SeekerParticles;
@@ -324,7 +325,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return;
         }
 
-        int newActiveLevel = computeActiveLevel();
+        int newActiveLevel = computeActiveLevel(pos);
         if(newActiveLevel == activeLevel){
             return;
         }
@@ -341,8 +342,13 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
 
 
     // Ranges from 0 to 4, where 0 is inactive.
-    private int computeActiveLevel(){
+    private int computeActiveLevel(BlockPos pos){
         if(selectedRecipe == null){
+            return 0;
+        }
+
+        assert level != null;
+        if(level.getBlockState(pos).getValue(EffectConduitBlock.DISABLED_BY_REDSTONE)){
             return 0;
         }
 
