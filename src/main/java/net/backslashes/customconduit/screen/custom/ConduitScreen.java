@@ -37,7 +37,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
     public ConduitScreen(ConduitMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         recipes = playerInventory.player.level().getRecipeManager().getAllRecipesFor(ModRecipes.EFFECT_CONDUIT_RECIPE_TYPE.get()).stream().map(RecipeHolder::value).toList();
-        imageWidth = 176;
+        imageWidth = 208;
         imageHeight = 180;
         tickCounter = 0.0f;
     }
@@ -55,7 +55,7 @@ public class ConduitScreen extends AbstractContainerScreen<ConduitMenu> {
                 90,
                 70,
                 originY + 6 - 70,
-                originX + 43
+                originX + 59
         );
 
         this.recipesMenu = this.addRenderableWidget(recipesMenu);

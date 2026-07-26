@@ -150,7 +150,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
         )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "animal_friend"));
 
         new EffectConduitRecipeBuilder(new EffectConduitRecipe(
-                "Divine Nourishment",
+                "Nourishment",
                 1,
                 EffectConduitRecipe.ConduitTier.DEFAULT_TIERS.get(1),
                 600,
@@ -166,7 +166,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 true,
                 false,
                 false
-        )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "divine_nourishment"));
+        )).save(output, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "nourishment"));
 
         new EffectConduitRecipeBuilder(new EffectConduitRecipe(
                 "The Hollowing",

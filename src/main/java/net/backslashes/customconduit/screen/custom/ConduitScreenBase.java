@@ -42,8 +42,16 @@ public class ConduitScreenBase {
         return Integer.toString(count);
     }
 
+    public static String truncateByWidth(String str, int width){
+        String truncated = FONT.plainSubstrByWidth(str, width);
+        if(!truncated.equals(str)){
+            truncated += ".";
+        }
+        return truncated;
+    }
+
     public static void drawTitle(GuiGraphics guiGraphics, String title, int color, int baseX, int baseY){
-        guiGraphics.drawCenteredString(FONT, title, baseX + 87, baseY + 7, color);
+        guiGraphics.drawCenteredString(FONT, truncateByWidth(title, 85), baseX + 103, baseY + 7, color);
     }
 
     public static void draw(EffectConduitRecipe recipe, GuiGraphics guiGraphics, int activeLevel, int baseX, int baseY){
@@ -54,7 +62,7 @@ public class ConduitScreenBase {
             var effect = recipe.outEffects().get(i);
             int y = baseY + 39 + 11 * i;
             guiGraphics.drawString(FONT, effectAmplifierToString(effect.amplifier()), baseX + 115, y, TEXT_COLOR);
-            guiGraphics.drawString(FONT, effect.effect().value().getDisplayName(), baseX + 129, y, TEXT_COLOR);
+            guiGraphics.drawString(FONT, truncateByWidth(effect.effect().value().getDisplayName().getString(), 70), baseX + 129, y, TEXT_COLOR);
         }
 
         // Effect targets.

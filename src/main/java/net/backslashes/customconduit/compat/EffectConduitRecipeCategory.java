@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 public class EffectConduitRecipeCategory implements IRecipeCategory<EffectConduitRecipe> {
     private static final ResourceLocation BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/jei_bg.png");
     private static final ResourceLocation FUEL_BG_TEXTURE = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "textures/gui/conduit/jei_fuel.png");
-    private static final int BG_WIDTH = 176;
+    private static final int BG_WIDTH = 208;
     private static final int BG_HEIGHT = 100;
     public static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, ModRecipes.EFFECT_CONDUIT_RECIPE_ID);
     public static final RecipeType<EffectConduitRecipe> EFFECT_CONDUIT_RECIPE_TYPE = new RecipeType<>(UID, EffectConduitRecipe.class);
