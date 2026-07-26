@@ -94,7 +94,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                 EffectConduitRecipe.ConduitTier.DEFAULT_TIERS.get(1),
                 1200,
                 Ingredient.of(Items.SUGAR),
-                Ingredient.of(Items.REDSTONE_BLOCK),
+                Ingredient.of(Tags.Items.STORAGE_BLOCKS_GOLD),
                 List.of(
                         new EffectConduitRecipe.ConduitEffect(
                                 MobEffects.MOVEMENT_SPEED,
@@ -105,7 +105,7 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
                                 1
                         )
                 ),
-                new MathUtil.RgbColor(1.0f, 0.3f, 0.1f),
+                new MathUtil.RgbColor(1.0f, 0.95f, 0.3f),
                 true,
                 false,
                 false

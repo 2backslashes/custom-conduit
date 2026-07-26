@@ -347,7 +347,14 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             return 0;
         }
 
-        assert level != null;
+        if(level == null){
+            return 0;
+        }
+
+        if(!level.getBlockState(pos).getBlock().equals(ModBlocks.EFFECT_CONDUIT.get())){
+            return 0;
+        }
+
         if(level.getBlockState(pos).getValue(EffectConduitBlock.DISABLED_BY_REDSTONE)){
             return 0;
         }
