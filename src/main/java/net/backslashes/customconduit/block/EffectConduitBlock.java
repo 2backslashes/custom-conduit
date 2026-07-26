@@ -90,11 +90,27 @@ public class EffectConduitBlock extends BaseEntityBlock {
             if(player instanceof ServerPlayer serverPlayer){
                 serverPlayer.openMenu(new SimpleMenuProvider(entity, Component.literal("Conduit")), pos);
             }
-//            ItemStack existing = entity.inventory.extractItem(FUEL_SLOT, 64, false);
-//            level.playSound(player, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0f, 1.0f);
-//            player.setItemInHand(hand, existing);
-//            entity.inventory.insertItem(FUEL_SLOT, stack, false);
         }
         return ItemInteractionResult.SUCCESS;
+    }
+
+    protected boolean hasAnalogOutputSignal(@NotNull BlockState state) {
+        return true;
+    }
+
+    protected int getAnalogOutputSignal(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos) {
+        if(level.getBlockEntity(pos) instanceof EffectConduitBlockEntity entity){
+            if(!entity.requiresFuel()){
+                return 15;
+            }
+
+            ItemStack stack = entity.getStackInSlot(0);
+            if(stack.isEmpty()){
+                return 0;
+            }
+
+            return (int) Math.ceil(15 * (float) stack.getCount() / stack.getMaxStackSize());
+        }
+        return 0;
     }
 }
