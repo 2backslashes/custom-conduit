@@ -7,12 +7,14 @@ import net.backslashes.customconduit.MathUtil;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Position;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.gameevent.PositionSource;
 import net.minecraft.world.phys.Vec3;
@@ -81,14 +83,29 @@ public class EffectConduitParticles extends TextureSheetParticle {
                 MathUtil.RgbColor.CODEC.fieldOf("color").forGetter(EffectConduitParticleOptions::color)
         ).apply(inst, EffectConduitParticleOptions::new));
 
+        public static final StreamCodec<RegistryFriendlyByteBuf, EffectConduitParticleOptions> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, EffectConduitParticleOptions>() {
+            @Override
+            public void encode(@NotNull RegistryFriendlyByteBuf buffer, EffectConduitParticleOptions options) {
+                buffer.writeVec3(options.destination);
+                buffer.writeInt(options.color.toHexArgb());
+            }
+
+            @Override
+            public @NotNull EffectConduitParticleOptions decode(@NotNull RegistryFriendlyByteBuf buffer) {
+                Vec3 dest = buffer.readVec3();
+                int color = buffer.readInt();
+                return new EffectConduitParticleOptions(dest, MathUtil.RgbColor.fromArgbHex(color));
+            }
+        };
+
         @Override
-        public MapCodec<EffectConduitParticleOptions> codec() {
+        public @NotNull MapCodec<EffectConduitParticleOptions> codec() {
             return CODEC;
         }
 
         @Override
-        public StreamCodec<? super RegistryFriendlyByteBuf, EffectConduitParticleOptions> streamCodec() {
-            return null;
+        public @NotNull StreamCodec<? super RegistryFriendlyByteBuf, EffectConduitParticleOptions> streamCodec() {
+            return STREAM_CODEC;
         }
     }
 

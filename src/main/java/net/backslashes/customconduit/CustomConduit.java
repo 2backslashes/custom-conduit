@@ -3,6 +3,7 @@ import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.item.ModItems;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
 import net.backslashes.customconduit.particle.ModParticles;
+import net.backslashes.customconduit.particle.SeekerParticles;
 import net.backslashes.customconduit.recipe.ModRecipes;
 import net.backslashes.customconduit.screen.ModMenuTypes;
 import net.backslashes.customconduit.screen.custom.ConduitScreen;
@@ -68,6 +69,7 @@ public class CustomConduit {
         @SubscribeEvent
         public static void registerParticleProviders(RegisterParticleProvidersEvent event) {
             event.registerSpriteSet(ModParticles.EFFECT_CONDUIT_PARTICLES.get(), EffectConduitParticles.Provider::new);
+            event.registerSpriteSet(ModParticles.SEEKER_PARTICLES.get(), SeekerParticles.Provider::new);
         }
 
         @SubscribeEvent

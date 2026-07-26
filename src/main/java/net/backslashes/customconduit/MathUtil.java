@@ -100,4 +100,9 @@ public class MathUtil {
             }
         }
     }
+
+    public static float easeOutCubic(float x) {
+        return 1.0f - (float) Math.pow(1.0f - x, 3.0f);
+
+    }
 }

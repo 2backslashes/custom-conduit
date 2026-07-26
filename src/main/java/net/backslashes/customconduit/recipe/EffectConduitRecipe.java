@@ -134,12 +134,15 @@ public record EffectConduitRecipe(
         return false;
     }
 
-    public <T> void computeValidFrameBlocks(HashMap<Block, List<T>> frameBlocksByType, List<T> outFrameBlocks){
-        outFrameBlocks.clear();
+    public <T> void computeValidFrameBlocks(HashMap<Block, List<T>> frameBlocksByType, List<T> outValidFrameBlocks, List<T> outInvalidFrameBlocks){
+        outValidFrameBlocks.clear();
+        outInvalidFrameBlocks.clear();
         for (Map.Entry<Block, List<T>> entry : frameBlocksByType.entrySet()) {
             ItemStack itemStack = new ItemStack(entry.getKey().asItem(), 1);
             if(frameBlockIngredient.test(itemStack)){
-                outFrameBlocks.addAll(entry.getValue());
+                outValidFrameBlocks.addAll(entry.getValue());
+            } else {
+                outInvalidFrameBlocks.addAll(entry.getValue());
             }
         }
     }

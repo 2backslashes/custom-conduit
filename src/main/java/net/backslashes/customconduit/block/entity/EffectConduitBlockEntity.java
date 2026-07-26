@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import net.backslashes.customconduit.ServerConfig;
 import net.backslashes.customconduit.block.ModBlocks;
 import net.backslashes.customconduit.particle.EffectConduitParticles;
+import net.backslashes.customconduit.particle.SeekerParticles;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.backslashes.customconduit.recipe.ModRecipes;
 import net.backslashes.customconduit.screen.custom.ConduitMenu;
@@ -127,13 +128,15 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     private int lastFrameHash = 0;
     public int tickCount;
     public int color = 0xFFFFFF;
-    private long nextAmbientSoundActivation;
 
     private int activeLevel = 0;
     private int fuelRemainingTicks;
     private ResourceLocation pendingSelectedRecipe = null;
     private SelectedRecipe selectedRecipe = null;
     private final List<BlockPos> validFrameBlocks = new ArrayList<>();
+
+    private final List<BlockPos> invalidFrameBlocks = new ArrayList<>();
+    private final List<BlockPos> frameBlockCandidates = new ArrayList<>();
 
     public record SelectedRecipe(
             int index,
@@ -225,6 +228,10 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
                 recipe.id(),
                 recipe.value()
         );
+
+        this.frameBlockCandidates.clear();
+        int r = this.selectedRecipe.recipe.frameSize() + 1;
+        iterFrameBlocks(getBlockPos(), r, r, r, this.frameBlockCandidates::add);
 
         if(resetFuel){
             this.fuelRemainingTicks = 0;
@@ -415,6 +422,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
     private void recomputeValidFrameBlocks(BlockPos center){
         if(selectedRecipe == null){
             validFrameBlocks.clear();
+            invalidFrameBlocks.clear();
             return;
         }
 
@@ -423,8 +431,8 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
 
         HashMap<Block, List<BlockPos>> frameBlocksByType = new HashMap<>();
-        int radius = selectedRecipe.recipe.frameSize() + 1;
-        iterFrameBlocks(center, radius, radius, radius, (pos) -> {
+
+        for(BlockPos pos : frameBlockCandidates){
             Block block = level.getBlockState(pos).getBlock();
             List<BlockPos> blocksOfType = frameBlocksByType.get(block);
             if(blocksOfType == null){
@@ -432,7 +440,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             } else {
                 blocksOfType.add(pos);
             }
-        });
+        }
 
         // Early exit if the frame hasn't actually changed composition.
         int newFrameHash = selectedRecipe.hashCode();
@@ -445,7 +453,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
         lastFrameHash = newFrameHash;
 
-         selectedRecipe.recipe.computeValidFrameBlocks(frameBlocksByType, validFrameBlocks);
+        selectedRecipe.recipe.computeValidFrameBlocks(frameBlocksByType, validFrameBlocks, invalidFrameBlocks);
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, EffectConduitBlockEntity blockEntity) {
@@ -515,15 +523,30 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
         }
     }
 
-    private void animationTick(BlockPos pos) {
+    private void animationTick(BlockPos center) {
         if(level == null){
             return;
         }
 
         RandomSource randomsource = level.random;
-        double d0 = Mth.sin((float)(tickCount + 35) * 0.1F) / 2.0F + 0.5F;
-        d0 = (d0 * d0 + d0) * (double)0.3F;
-        Vec3 vec3 = new Vec3((double)pos.getX() + (double)0.5F, (double)pos.getY() + (double)1.5F + d0, (double)pos.getZ() + (double)0.5F);
+
+        if(this.tickCount % 4 == 0 && !this.invalidFrameBlocks.isEmpty()){
+            int i = randomsource.nextInt(this.frameBlockCandidates.size());
+            if(i < this.invalidFrameBlocks.size()){
+                BlockPos pos = this.invalidFrameBlocks.get(i);
+                level.addParticle(
+                    new SeekerParticles.SeekerParticleOptions(
+                            pos.getCenter()
+                    ),
+                    center.getCenter().x,
+                    center.getCenter().y,
+                    center.getCenter().z,
+                    0.0,
+                    0.0,
+                    0.0
+                );
+            }
+        }
 
 
         if(!isActive()){
@@ -534,7 +557,7 @@ public class EffectConduitBlockEntity extends BlockEntity implements MenuProvide
             if (randomsource.nextInt(100) == 0) {
                 level.addParticle(
                         new EffectConduitParticles.EffectConduitParticleOptions(
-                            pos.getCenter(),
+                            center.getCenter(),
                             selectedRecipe.recipe().color()
                         ),
                         (double) blockpos.getX() + level.random.nextFloat(),
