@@ -3,5 +3,7 @@
 
   "sounds.customconduit.conduit_activate": "Conduit Activates",
   "sounds.customconduit.conduit_deactivate": "Conduit Deactivates",
-  "sounds.customconduit.conduit_ambient": "Conduit Hums"
+  "sounds.customconduit.conduit_ambient": "Conduit Hums",
+
+  "item.customconduit.heart_of_potential": "Heart of Potential"
 }

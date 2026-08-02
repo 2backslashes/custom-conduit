@@ -3,9 +3,14 @@ package net.backslashes.customconduit.datagen;
 import net.backslashes.customconduit.CustomConduit;
 import net.backslashes.customconduit.MathUtil;
 import net.backslashes.customconduit.block.ModBlocks;
+import net.backslashes.customconduit.item.ModItems;
 import net.backslashes.customconduit.recipe.EffectConduitRecipe;
 import net.backslashes.customconduit.recipe.EffectConduitRecipeBuilder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponentPredicate;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
@@ -15,12 +20,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.IConditionBuilder;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class ModRecipeProvider extends RecipeProvider implements IConditionBuilder {
@@ -32,14 +41,32 @@ public class ModRecipeProvider extends RecipeProvider implements IConditionBuild
     protected void buildRecipes(@NotNull RecipeOutput output) {
         super.buildRecipes(output);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModItems.HEART_OF_POTENTIAL.get())
+                .pattern(" A ")
+                .pattern("DHD")
+                .pattern(" A ")
+                .define('A', DataComponentIngredient.of(
+                        false,
+                        DataComponentPredicate.builder().expect(DataComponents.POTION_CONTENTS, new PotionContents(
+                                Optional.of(Potions.AWKWARD),
+                                Optional.empty(),
+                                List.of()
+                        )).build(),
+                        Items.POTION
+                ))
+                .define('D', Ingredient.of(Tags.Items.GEMS_DIAMOND))
+                .define('H', Ingredient.of(Items.HEART_OF_THE_SEA))
+                .unlockedBy("heart_of_the_sea", has(Items.HEART_OF_THE_SEA))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ModBlocks.EFFECT_CONDUIT.get())
                 .pattern("OGO")
                 .pattern("GHG")
                 .pattern("OGO")
                 .define('O', Ingredient.of(Tags.Items.OBSIDIANS_NORMAL))
                 .define('G', Ingredient.of(Tags.Items.INGOTS_GOLD))
-                .define('H', Ingredient.of(Items.HEART_OF_THE_SEA))
-                .unlockedBy("has_heart_of_the_sea", has(Items.HEART_OF_THE_SEA))
+                .define('H', Ingredient.of(ModItems.HEART_OF_POTENTIAL))
+                .unlockedBy("heart_of_the_sea", has(Items.HEART_OF_THE_SEA))
                 .save(output);
 
         buildConduitRecipes(output);

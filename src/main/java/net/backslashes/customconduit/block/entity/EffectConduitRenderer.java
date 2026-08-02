@@ -26,7 +26,7 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
     public static final Material SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/base"));
     public static final Material ACTIVE_SHELL_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/cage"));
     public static final Material WIND_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/wind"));
-    public static final Material EYE_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.withDefaultNamespace("entity/conduit/open_eye"));
+    public static final Material HEART_TEXTURE = new Material(TextureAtlas.LOCATION_BLOCKS, ResourceLocation.fromNamespaceAndPath(CustomConduit.MODID, "entity/conduit/heart"));
     private final ModelPart eye;
     private final ModelPart wind;
     private final ModelPart shell;
@@ -99,7 +99,7 @@ public class EffectConduitRenderer implements BlockEntityRenderer<EffectConduitB
             this.eye
                     .render(
                             poseStack,
-                            EYE_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull),
+                            HEART_TEXTURE.buffer(bufferSource, RenderType::entityCutoutNoCull),
                             packedLight,
                             packedOverlay
                     );
